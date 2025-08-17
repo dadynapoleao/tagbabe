@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Conteúdo</title>
+
+    <!-- CSS DA BIBLIOTECA CHOICES.JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --sidebar-bg: #1e1e1e;
+            --card-bg: #282828;
+            --primary-text: #ffffff;
+            --secondary-text: #b3b3b3;
+            --accent-color: #1db954;
+            --error-color: #f44336;
+            --success-color: #4caf50;
+            --border-color: #404040;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-text);
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; background-color: var(--sidebar-bg); padding: 30px; border-radius: 8px; }
+        h1 { text-align: center; color: var(--accent-color); margin-bottom: 20px; }
+
+        .form-section { display: none; border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px; }
+        .form-section.active { display: block; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--secondary-text); }
+        input[type="text"], input[type="date"], input[type="number"], select, textarea { width: 100%; padding: 10px; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 4px; color: var(--primary-text); font-size: 1rem; }
+        
+        /* Estilos específicos para o Choices.js parecer nativo */
+        .choices__inner { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 4px; padding: 6px; font-size: 1rem; min-height: 40px;}
+        .choices__list--dropdown, .choices__list[aria-expanded] { background-color: var(--card-bg); border-color: var(--border-color); }
+        .choices__item--choice { color: var(--primary-text); }
+        .choices__item--selectable.is-highlighted { background-color: var(--accent-color); }
+        .choices[data-type*="select-multiple"] .choices__button, .choices[data-type*="text"] .choices__button { border-left: 1px solid var(--border-color); margin-top: 4px; }
+
+        button { background-color: var(--accent-color); color: #fff; border: none; padding: 12px 20px; font-size: 1rem; font-weight: bold; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; width: 100%; margin-top: 10px; }
+        button:hover { background-color: #1ed760; }
+        button:disabled { background-color: #555; cursor: not-allowed; }
+
+        .tags-panel { background-color: var(--card-bg); padding: 15px; border-radius: 4px; margin-top: 10px; }
+        .tags-input-group { display: flex; gap: 10px; margin-bottom: 10px; }
+        .tags-input-group select { flex: 2; } .tags-input-group input { flex: 1; } .tags-input-group button { flex: 1; margin-top: 0; }
+        #tags-display-cena, #tags-display-video { display: flex; flex-wrap: wrap; gap: 8px; min-height: 20px; }
+        .tag-item-editor { background-color: var(--sidebar-bg); padding: 5px 10px; border-radius: 15px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .tag-item-editor .remove-tag { cursor: pointer; color: var(--error-color); font-weight: bold; }
+        #status-message { text-align: center; padding: 10px; margin-top: 20px; border-radius: 4px; font-weight: bold; display: none; }
+        #status-message.success { background-color: var(--success-color); display: block; }
+        #status-message.error { background-color: var(--error-color); display: block; }
+      .url-preview {
+            display: none; /* Escondido por defeito */
+            margin-top: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden; /* Garante que o conteúdo não ultrapasse as bordas arredondadas */
+        }
+        .url-preview video,
+        .url-preview iframe {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16 / 9; /* Mantém a proporção correta */
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Editor de Conteúdo</h1>
+        <div class="form-group">
+            <label for="editor-selector">O que você quer criar?</label>
+            <select id="editor-selector">
+                <option value="">-- Selecione uma opção --</option>
+                <option value="ator">Ator</option>
+                <option value="cena">Cena</option>
+                <option value="video">Vídeo</option>
+                <option value="filme">Filme</option>
+            </select>
+        </div>
+
+        <form id="form-ator" class="form-section">
+            <h2>Novo Ator</h2>
+            <div class="form-group"><label for="ator-nome">Nome</label><input type="text" id="ator-nome" required></div>
+            <div class="form-group"><label for="ator-foto">URL da Foto</label><input type="text" id="ator-foto"></div>
+            <div class="form-group"><label for="ator-nascimento">Data de Nascimento</label><input type="date" id="ator-nascimento"></div>
+            <div class="form-group"><label for="ator-pais">País</label><input type="text" id="ator-pais"></div>
+            <div class="form-group"><label for="ator-etnia">Etnia</label><input type="text" id="ator-etnia"></div>
+            <div class="form-group"><label for="ator-altura">Altura (cm)</label><input type="number" id="ator-altura"></div>
+            <div class="form-group"><label for="ator-peso">Peso (kg)</label><input type="number" id="ator-peso"></div>
+            <div class="form-group"><label for="ator-medidas">Medidas (ex: 86-68-99)</label><input type="text" id="ator-medidas"></div>
+            <div class="form-group"><label for="ator-cabelo">Cor do Cabelo</label><input type="text" id="ator-cabelo"></div>
+            <div class="form-group"><label for="ator-olhos">Cor dos Olhos</label><input type="text" id="ator-olhos"></div>
+            <button type="submit">Salvar Ator</button>
+        </form>
+
+        <form id="form-cena" class="form-section">
+            <h2>Nova Cena</h2>
+            <div class="form-group"><label for="cena-atores">Atores (Pesquise e selecione)</label><select id="cena-atores" multiple></select></div>
+            <div class="form-group"><label for="cena-filme">Associar a um Filme (Pesquise)</label><select id="cena-filme"></select></div>
+            <div class="form-group"><label for="cena-nome">Nome da Cena</label><input type="text" id="cena-nome" required></div>
+            <div class="form-group"><label for="cena-numero">Número da Cena</label><input type="number" id="cena-numero"></div>
+            <div class="form-group"><label for="cena-imagem">URL da Imagem</label><input type="text" id="cena-imagem"></div>
+            <div class="form-group"><label for="cena-pagina">URL da Página/Vídeo</label><input type="text" id="cena-pagina"></div>
+            <div id="cena-pagina-preview" class="url-preview"></div>
+            </div>
+            <div class="form-group"><label for="cena-data">Data</label><input type="date" id="cena-data"></div>
+            <div class="form-group">
+                <label>Tags de Tempo</label>
+                <div class="tags-panel">
+                    <div class="tags-input-group">
+                        <select id="tag-selector-cena">
+                            <option value="blowjob">Blowjob</option>
+                            <option value="cowgirl">Cowgirl</option>
+                            <option value="missionary">Missionary</option>
+                             <option value="anal">Anal</option>
+                            <option value="doggy">Doggy</option>
+                            <option value="tittyfuck">Tittyfuck</option>
+                            <option value="cum">Cum</option>
+                            <option value="piss">Piss</option>
+                            <option value="feet">Feet</option>
+                        
+                        </select>
+                        <input type="text" id="tag-time-cena" placeholder="Min:Seg (ex: 2:03)">
+                        <button type="button" id="add-tag-btn-cena">Adicionar</button>
+                    </div>
+                    <div id="tags-display-cena"></div>
+                </div>
+            </div>
+            <button type="submit">Salvar Cena</button>
+        </form>
+
+        <form id="form-video" class="form-section">
+            <h2>Novo Vídeo</h2>
+            <div class="form-group"><label for="video-atores">Atores (Pesquise e selecione)</label><select id="video-atores" multiple></select></div>
+            <div class="form-group"><label for="video-nome">Nome do Vídeo</label><input type="text" id="video-nome" required></div>
+            <div class="form-group"><label for="video-estudio">Estúdio</label><input type="text" id="video-estudio"></div>
+            <div class="form-group"><label for="video-imagem">URL da Imagem</label><input type="text" id="video-imagem"></div>
+            <div class="form-group"><label for="video-pagina">URL da Página/Vídeo</label><input type="text" id="video-pagina"></div>
+                            <div id="video-pagina-preview" class="url-preview"></div>
+
+            <div class="form-group"><label for="video-data">Data</label><input type="date" id="video-data"></div>
+            <div class="form-group">
+                <label>Tags de Tempo</label>
+                <div class="tags-panel">
+                     <div class="tags-input-group">
+                        <select id="tag-selector-video">
+                              <option value="blowjob">Blowjob</option>
+                            <option value="cowgirl">Cowgirl</option>
+                            <option value="missionary">Missionary</option>
+                             <option value="anal">Anal</option>
+                            <option value="doggy">Doggy</option>
+                            <option value="tittyfuck">Tittyfuck</option>
+                            <option value="cum">Cum</option>
+                            <option value="piss">Piss</option>
+                            <option value="feet">Feet</option>
+                        
+                        </select>
+                        <input type="text" id="tag-time-video" placeholder="Min:Seg (ex: 2:03)">
+                        <button type="button" id="add-tag-btn-video">Adicionar</button>
+                    </div>
+                    <div id="tags-display-video"></div>
+                </div>
+            </div>
+            <button type="submit">Salvar Vídeo</button>
+        </form>
+
+        <form id="form-filme" class="form-section">
+            <h2>Novo Filme</h2>
+            <div class="form-group"><label for="filme-atores">Atores (Pesquise e selecione para associar)</label><select id="filme-atores" multiple></select></div>
+            <div class="form-group"><label for="filme-nome">Nome do Filme</label><input type="text" id="filme-nome" required></div>
+            <div class="form-group"><label for="filme-ano">Ano</label><input type="number" id="filme-ano" min="1900" max="2100"></div>
+            <div class="form-group"><label for="filme-estudio">Estúdio</label><input type="text" id="filme-estudio"></div>
+            <div class="form-group"><label for="filme-duracao">Duração (ex: 02:44:00)</label><input type="text" id="filme-duracao"></div>
+            <div class="form-group"><label for="filme-imagem">URL da Imagem da Capa</label><input type="text" id="filme-imagem"></div>
+            <div class="form-group"><label for="filme-pagina">URL da Página</label><input type="text" id="filme-pagina"></div>
+                            <div id="filme-pagina-preview" class="url-preview"></div>
+
+            <button type="submit">Salvar Filme</button>
+        </form>
+
+        <div id="status-message"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+       <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyBZEffPMXgbSHYUUrNdIS5duAVGlKlmSq0",
+          authDomain: "babes-392fd.firebaseapp.com",
+          projectId: "babes-392fd",
+          storageBucket: "babes-392fd.appspot.com",
+          messagingSenderId: "376795361631",
+          appId: "1:376795361631:web:d662f2b2f2cd23b115c6ea"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // --- Variáveis Globais ---
+        let actorsCache = {};
+        let moviesCache = {};
+        let choicesInstances = {};
+        let currentSceneTags = [], currentVideoTags = [];
+
+        // --- Elementos do DOM ---
+        const selector = document.getElementById('editor-selector');
+        const statusMessage = document.getElementById('status-message');
+        const forms = { ator: document.getElementById('form-ator'), cena: document.getElementById('form-cena'), video: document.getElementById('form-video'), filme: document.getElementById('form-filme') };
+
+        // --- Funções Auxiliares ---
+        const normalizeId = (name) => name.replace(/[.#$/[\]]/g, '_');
+        const showStatus = (message, isError = false) => { statusMessage.textContent = message; statusMessage.className = isError ? 'error' : 'success'; setTimeout(() => { statusMessage.className = ''; statusMessage.style.display = 'none'; }, 5000); };
+        const parseTimeToSeconds = (timeStr) => { if (!timeStr) return 0; const parts = timeStr.split(':').map(Number); if (parts.length === 2) return parts[0] * 60 + parts[1]; if (parts.length === 1) return parts[0]; return 0; };
+
+        // --- Lógica de Carregamento ---
+        async function loadInitialData() {
+            try {
+                const snapshot = await db.collection('all').get();
+                actorsCache = {}; moviesCache = {};
+                const actorChoices = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    actorsCache[doc.id] = data;
+                    actorChoices.push({ value: doc.id, label: data.informacoes_ator.nome });
+                    if (data.filmes && data.filmes.length > 0) {
+                        data.filmes.forEach(filme => { if (!moviesCache[filme.nome]) { moviesCache[filme.nome] = filme; } });
+                    }
+                });
+                actorChoices.sort((a, b) => a.label.localeCompare(b.label));
+                Object.values(choicesInstances.actors).forEach(instance => instance.setChoices(actorChoices, 'value', 'label', true));
+                const movieChoices = Object.keys(moviesCache).sort().map(movieName => ({ value: movieName, label: movieName }));
+                choicesInstances.movies.setChoices(movieChoices, 'value', 'label', true);
+            } catch (error) { showStatus('Erro ao carregar dados: ' + error.message, true); }
+        }
+
+        // --- Lógica das Tags ---
+        function setupTagPanel(type) {
+            const addBtn = document.getElementById(`add-tag-btn-${type}`), tagSelector = document.getElementById(`tag-selector-${type}`), timeInput = document.getElementById(`tag-time-${type}`), display = document.getElementById(`tags-display-${type}`);
+            let currentTags = type === 'cena' ? currentSceneTags : currentVideoTags;
+            addBtn.onclick = () => { const label = tagSelector.value, time = parseTimeToSeconds(timeInput.value); if (timeInput.value.trim() === '') { showStatus('Por favor, insira um tempo para a tag.', true); return; } currentTags.push({ label, time }); renderTags(type); timeInput.value = ''; };
+            display.onclick = (e) => { if (e.target.classList.contains('remove-tag')) { const index = parseInt(e.target.dataset.index, 10); currentTags.splice(index, 1); renderTags(type); } };
+        }
+        function renderTags(type) {
+            const display = document.getElementById(`tags-display-${type}`);
+            let currentTags = type === 'cena' ? currentSceneTags : currentVideoTags;
+            display.innerHTML = currentTags.map((tag, index) => `<span class="tag-item-editor">${tag.label} @ ${tag.time}s <span class="remove-tag" data-index="${index}">&times;</span></span>`).join('');
+        }
+
+        // --- Lógica dos Formulários ---
+        selector.addEventListener('change', () => { Object.values(forms).forEach(form => form.classList.remove('active')); if (selector.value) { forms[selector.value].classList.add('active'); } });
+
+        forms.ator.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('ator-nome').value.trim();
+            if (!nome) { showStatus('O nome do ator é obrigatório.', true); return; }
+            const docId = normalizeId(nome);
+            if (actorsCache[docId]) { showStatus('Já existe um ator com este nome.', true); return; }
+            const newActorDoc = {
+                informacoes_ator: { id: docId, nome, foto: document.getElementById('ator-foto').value || null, dataNascimento: document.getElementById('ator-nascimento').value || null, pais: document.getElementById('ator-pais').value || null, etnia: document.getElementById('ator-etnia').value || null, altura: parseInt(document.getElementById('ator-altura').value) || null, peso: parseInt(document.getElementById('ator-peso').value) || null, medidas: document.getElementById('ator-medidas').value || null, corCabelo: document.getElementById('ator-cabelo').value || null, corOlhos: document.getElementById('ator-olhos').value || null },
+                cenas: [], videos: [], filmes: []
+            };
+            try { await db.collection('all').doc(docId).set(newActorDoc); showStatus('Ator criado com sucesso!'); e.target.reset(); await loadInitialData(); } catch (error) { showStatus('Erro ao salvar ator: ' + error.message, true); }
+        });
+
+        // =========================================================================
+        // FUNÇÃO handleContentForm TOTALMENTE REESCRITA E CORRIGIDA
+        // =========================================================================
+        async function handleContentForm(e, type) {
+            e.preventDefault();
+            const form = e.target;
+            const selectedActorIds = choicesInstances.actors[type].getValue(true);
+            const nome = form.querySelector(`#${type}-nome`).value.trim();
+
+            if (selectedActorIds.length === 0 || !nome) {
+                showStatus('ERRO: Nome e pelo menos um ator são obrigatórios.', true);
+                return;
+            }
+            
+            // Construção do objeto base com tratamento de campos vazios
+            const contentData = {
+                nome,
+                imagem: form.querySelector(`#${type}-imagem`).value || null,
+                pagina: form.querySelector(`#${type}-pagina`).value || null,
+                atores: selectedActorIds.map(id => actorsCache[id]?.informacoes_ator?.id || id),
+ timestamp: new Date().toISOString()            };
+
+            // Adicionar campos específicos para cada tipo de conteúdo
+            if (type === 'cena') {
+                contentData.data = form.querySelector('#cena-data').value || null;
+                contentData.numeroCena = parseInt(form.querySelector('#cena-numero').value) || null;
+                contentData.tags = currentSceneTags;
+                const filmeId = choicesInstances.movies.getValue(true);
+                if (filmeId) { contentData.filmeId = filmeId; }
+            } 
+            else if (type === 'video') {
+                contentData.data = form.querySelector('#video-data').value || null;
+                contentData.estudio = form.querySelector('#video-estudio').value || null;
+                contentData.tags = currentVideoTags;
+            } 
+            else if (type === 'filme') {
+                contentData.ano = parseInt(form.querySelector('#filme-ano').value) || null;
+                contentData.estudio = form.querySelector('#filme-estudio').value || null;
+                contentData.duracao = form.querySelector('#filme-duracao').value || null;
+            }
+
+            try {
+                const batch = db.batch();
+                let warnings = '';
+
+                for (const actorId of selectedActorIds) {
+                    const actorDoc = actorsCache[actorId];
+                    if (!actorDoc) continue; // Ignora se o ator não estiver no cache
+
+                    const arrayName = type + 's'; // ex: 'videos'
+                    
+                    // CORREÇÃO CRÍTICA: Garante que o array existe antes de tentar usá-lo
+                    const contentArray = actorDoc[arrayName] || [];
+                    
+                    if (contentArray.some(item => item.nome === nome)) {
+                        warnings += `Aviso: "${nome}" já existe para ${actorDoc.informacoes_ator.nome}.\n`;
+                    } else {
+                        contentArray.push(contentData);
+                        const docRef = db.collection('all').doc(actorId);
+                        batch.update(docRef, { [arrayName]: contentArray });
+                    }
+                }
+                
+                await batch.commit();
+                showStatus(`Operação concluída com sucesso! ${warnings || ''}`);
+                form.reset();
+                
+                choicesInstances.actors[type].removeActiveItems();
+                if (type === 'cena') { choicesInstances.movies.removeActiveItems(); currentSceneTags = []; renderTags('cena'); }
+                if (type === 'video') { currentVideoTags = []; renderTags('video'); }
+                
+                await loadInitialData();
+            } catch (error) {
+                showStatus('ERRO AO SALVAR: ' + error.message, true);
+                console.error("Erro detalhado:", error);
+            }
+        }
+        
+        function setupUrlPreviews() {
+            const previewConfigs = [
+                { inputId: 'cena-pagina', previewId: 'cena-pagina-preview' },
+                { inputId: 'video-pagina', previewId: 'video-pagina-preview' },
+                { inputId: 'filme-pagina', previewId: 'filme-pagina-preview' }
+            ];
+
+            previewConfigs.forEach(config => {
+                const inputEl = document.getElementById(config.inputId);
+                const previewEl = document.getElementById(config.previewId);
+
+                if (!inputEl || !previewEl) return;
+
+                inputEl.addEventListener('input', () => {
+                    const url = inputEl.value.trim();
+
+                    if (!url) {
+                        previewEl.innerHTML = '';
+                        previewEl.style.display = 'none';
+                        return;
+                    }
+
+                    const isVideo = url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm') || url.toLowerCase().endsWith('.ogg');
+                    let contentHtml = '';
+
+                    if (isVideo) {
+                        contentHtml = `<video src="${url}" controls muted></video>`;
+                    } else {
+                        contentHtml = `<iframe src="${url}" frameborder="0"></iframe>`;
+                    }
+
+                    previewEl.innerHTML = contentHtml;
+                    previewEl.style.display = 'block';
+                });
+            });
+        }
+
+        forms.cena.addEventListener('submit', (e) => handleContentForm(e, 'cena'));
+        forms.video.addEventListener('submit', (e) => handleContentForm(e, 'video'));
+        forms.filme.addEventListener('submit', (e) => handleContentForm(e, 'filme'));
+
+        // --- Inicialização ---
+        document.addEventListener('DOMContentLoaded', () => {
+            choicesInstances.actors = {
+                cena: new Choices('#cena-atores', { removeItemButton: true, placeholder: true, placeholderValue: 'Pesquisar atores...' }),
+                video: new Choices('#video-atores', { removeItemButton: true, placeholder: true, placeholderValue: 'Pesquisar atores...' }),
+                filme: new Choices('#filme-atores', { removeItemButton: true, placeholder: true, placeholderValue: 'Pesquisar atores...' })
+            };
+            choicesInstances.movies = new Choices('#cena-filme', { placeholder: true, placeholderValue: 'Pesquisar filmes...', searchEnabled: true, shouldSort: false });
+            loadInitialData();
+            setupTagPanel('cena');
+            setupTagPanel('video');
+                        setupUrlPreviews(); 
+
+        });
+    </script>
+</body>
+</html>
