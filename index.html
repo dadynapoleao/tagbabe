@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Babes Database Explorer</title>
+    
+    <style>
+        :root {
+            --bg-color: #121212; --sidebar-bg: #1e1e1e; --card-bg: #282828; --primary-text: #ffffff; --secondary-text: #b3b3b3; --accent-color: #1db954; --hover-color: #333333; --border-color: #404040;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--primary-text); display: flex; height: 100vh; overflow: hidden; }
+        .app-container { display: flex; width: 100%; height: 100%; }
+        #sidebar { width: 280px; background-color: var(--sidebar-bg); padding: 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); flex-shrink: 0; }
+        #sidebar h2 { font-size: 1.5rem; margin-bottom: 20px; color: var(--accent-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; }
+        #actor-list { list-style: none; overflow-y: auto; flex-grow: 1; }
+        #actor-list::-webkit-scrollbar { width: 8px; } #actor-list::-webkit-scrollbar-track { background: var(--sidebar-bg); } #actor-list::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        #actor-list li { padding: 12px 15px; cursor: pointer; border-radius: 6px; font-weight: 500; transition: background-color 0.2s ease; }
+        #actor-list li:hover { background-color: var(--hover-color); }
+        #actor-list li.active { background-color: var(--accent-color); color: var(--bg-color); font-weight: 700; }
+        #main-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
+        #main-content::-webkit-scrollbar { width: 8px; } #main-content::-webkit-scrollbar-track { background: var(--bg-color); } #main-content::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        .profile-header { display: flex; align-items: center; gap: 30px; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid var(--border-color); }
+        .profile-header img { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent-color); }
+        .profile-info h1 { font-size: 2.5rem; }
+        .content-section h3 { font-size: 1.8rem; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .card { background-color: var(--card-bg); border-radius: 8px; overflow: hidden; transition: transform 0.2s ease; cursor: pointer; }
+        .card:hover { transform: translateY(-5px); }
+        .card img { width: 100%; height: 300px; object-fit: cover; display: block; pointer-events: none; }
+        .card-body { padding: 15px; pointer-events: none; }
+        .card-body h4 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-body p { font-size: 0.85rem; color: var(--secondary-text); }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .spinner { border: 8px solid var(--border-color); border-top: 8px solid var(--accent-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; }
+        .modal.visible { opacity: 1; visibility: visible; }
+        .modal-content { position: relative; background-color: var(--card-bg); border-radius: 8px; width: 95%; max-width: 1200px; max-height: 90vh; display: flex; overflow: hidden; }
+        .modal-close { position: absolute; top: 5px; right: 5px; background-color: var(--primary-text); color: var(--bg-color); border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center; z-index: 10; }
+        #modal-body { display: flex; width: 100%; height: 100%; }
+        .media-player { flex: 3; background-color: #000; display: flex; align-items: center; justify-content: center; }
+        .media-player .aspect-ratio-box { width: 100%; aspect-ratio: 16 / 9; }
+        .media-player video, .media-player iframe { width: 100%; height: 100%; border: none; }
+        .media-info { flex: 1; padding: 25px; background-color: var(--sidebar-bg); overflow-y: auto; }
+        .media-info h3 { font-size: 1.5rem; margin-bottom: 15px; }
+        .media-info p { margin-bottom: 20px; color: var(--secondary-text); }
+        .media-info h4 { font-size: 1.1rem; margin-top: 25px; margin-bottom: 10px; color: var(--accent-color); border-top: 1px solid var(--border-color); padding-top: 15px; }
+        .media-info ul { list-style: none; padding: 0; }
+        .media-info li { margin-bottom: 8px; }
+        .media-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag-item { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 15px; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s ease; }
+        .tag-item:hover { background-color: var(--accent-color); color: var(--bg-color); border-color: var(--accent-color); }
+    </style>
+</head>
+<body>
+
+    <div id="loader"><div class="spinner"></div></div>
+    <div class="app-container">
+        <aside id="sidebar">
+            <h2>Atores</h2>
+            <ul id="actor-list"></ul>
+        </aside>
+        <main id="main-content">
+            <!-- Conteúdo dinâmico -->
+        </main>
+    </div>
+    <div id="media-modal" class="modal">
+        <div class="modal-content">
+            <button id="modal-close-btn" class="modal-close">&times;</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyBZEffPMXgbSHYUUrNdIS5duAVGlKlmSq0",
+          authDomain: "babes-392fd.firebaseapp.com",
+          projectId: "babes-392fd",
+          storageBucket: "babes-392fd.appspot.com",
+          messagingSenderId: "376795361631",
+          appId: "1:376795361631:web:d662f2b2f2cd23b115c6ea"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const loader = document.getElementById('loader');
+        const actorListElement = document.getElementById('actor-list');
+        const mainContentElement = document.getElementById('main-content');
+        const modal = document.getElementById('media-modal');
+        const modalBody = document.getElementById('modal-body');
+        const closeModalBtn = document.getElementById('modal-close-btn');
+        let actorsData = {}, actorIdToDataMap = {};
+
+        async function initializeApp() {
+            try {
+                loader.style.display = 'flex';
+                const snapshot = await db.collection('all').get();
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    actorsData[doc.id] = data;
+                    if (data.informacoes_ator && data.informacoes_ator.id) {
+                        actorIdToDataMap[data.informacoes_ator.id] = data.informacoes_ator;
+                    } else { actorIdToDataMap[doc.id] = data.informacoes_ator; }
+                });
+                renderActorList(Object.keys(actorsData));
+            } catch (error) { console.error("Erro ao carregar dados: ", error); } 
+            finally { loader.style.display = 'none'; }
+        }
+
+        function renderActorList(actorIds) {
+            const sortedIds = actorIds.sort((a, b) => a.localeCompare(b));
+            actorListElement.innerHTML = sortedIds.map(id => `<li data-actor-id="${id}">${actorsData[id].informacoes_ator.nome || id}</li>`).join('');
+        }
+
+        function renderActorDetails(actorId) {
+            const data = actorsData[actorId]; if (!data) return;
+            const info = data.informacoes_ator || {};
+            const cenasHtml = generateGridHtml(data.cenas, 'cenas');
+            const filmesHtml = generateGridHtml(data.filmes, 'filmes');
+            const videosHtml = generateGridHtml(data.videos, 'videos');
+            mainContentElement.innerHTML = `<div class="profile-header"><img src="${info.foto || ''}" alt="Foto de ${info.nome || ''}"><div class="profile-info"><h1>${info.nome || 'N/A'}</h1></div></div>${cenasHtml}${filmesHtml}${videosHtml}`;
+        }
+
+        function generateGridHtml(items, type) {
+            if (!items || items.length === 0) return '';
+            const cards = items.map(item => `<div class="card" data-type="${type}" data-id="${item.nome}"><img src="${item.imagem || ''}" alt="${item.nome || ''}"><div class="card-body"><h4>${item.nome || 'N/A'}</h4><p>${item.data || item.ano || ''}</p></div></div>`).join('');
+            return `<div class="content-section"><h3>${type.charAt(0).toUpperCase() + type.slice(1)}</h3><div class="grid">${cards}</div></div>`;
+        }
+
+        // =========================================================================
+        // FUNÇÃO openModal TOTALMENTE CORRIGIDA E COMPLETA
+        // =========================================================================
+         function openModal(item, currentActorName) {
+            const link = item.pagina || '#';
+
+            // --- INÍCIO DA CORREÇÃO ---
+            // ANTES (Incorreto):
+            // const isVideo = link.toLowerCase().endsWith('.mp4') || ...
+
+            // AGORA (Correto):
+            // Verificamos o URL ANTES de qualquer parâmetro '?'
+            const urlPath = link.split('?')[0];
+            const isVideo = urlPath.toLowerCase().endsWith('.mp4') || 
+                            urlPath.toLowerCase().endsWith('.webm') || 
+                            urlPath.toLowerCase().endsWith('.ogg');
+            // --- FIM DA CORREÇÃO ---
+
+            const mediaPlayerHtml = `<div class="media-player"><div class="aspect-ratio-box">${isVideo ? `<video src="${link}" controls autoplay playsinline></video>` : `<iframe src="${link}" frameborder="0" allowfullscreen></iframe>`}</div></div>`;
+
+            let otherActorsHtml = '<li>Nenhuma outra atriz encontrada.</li>';
+            if (item.atores && item.atores.length > 1) {
+                const otherActors = item.atores.map(actorId => actorIdToDataMap[actorId]).filter(actorInfo => actorInfo && actorInfo.nome !== currentActorName);
+                if (otherActors.length > 0) { otherActorsHtml = otherActors.map(actor => `<li>${actor.nome}</li>`).join(''); }
+            }
+            
+            let videoTagsHtml = '';
+            // Agora esta condição irá funcionar corretamente
+            if (isVideo && item.tags && item.tags.length > 0) {
+                const tags = item.tags.map(tag => `<span class="tag-item" data-time="${tag.time}">${tag.label}</span>`).join('');
+                videoTagsHtml = `<h4>Tags</h4><div class="media-tags">${tags}</div>`;
+            }
+
+            const mediaInfoHtml = `<div class="media-info"><h3>${item.nome || 'N/A'}</h3><p><strong>Data:</strong> ${item.data || item.ano || 'N/A'}</p><h4>Outras Atrizes:</h4><ul>${otherActorsHtml}</ul>${videoTagsHtml}</div>`;
+            
+            modalBody.innerHTML = mediaPlayerHtml + mediaInfoHtml;
+            modal.classList.add('visible');
+            document.addEventListener('keydown', handleEscKey);
+        }
+
+        
+
+        function closeModal() {
+            modal.classList.remove('visible');
+            modalBody.innerHTML = '';
+            document.removeEventListener('keydown', handleEscKey);
+        }
+        function handleEscKey(e) { if (e.key === 'Escape') closeModal(); }
+        
+        actorListElement.addEventListener('click', (e) => {
+            if (e.target && e.target.nodeName === 'LI') {
+                document.querySelectorAll('#actor-list li').forEach(li => li.classList.remove('active'));
+                e.target.classList.add('active');
+                renderActorDetails(e.target.dataset.actorId);
+            }
+        });
+        
+        mainContentElement.addEventListener('click', (e) => {
+            const clickedCard = e.target.closest('.card');
+            if (clickedCard) {
+                const activeActorLi = actorListElement.querySelector('li.active'); if (!activeActorLi) return;
+                const actorName = activeActorLi.dataset.actorId;
+                const dataType = clickedCard.dataset.type;
+                const itemId = clickedCard.dataset.id;
+                const actorData = actorsData[actorName];
+                const itemData = actorData[dataType].find(item => item.nome === itemId);
+                if (itemData) { openModal(itemData, actorData.informacoes_ator.nome); }
+            }
+        });
+
+        // Event listener para os cliques nas TAGS
+        modalBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('tag-item')) {
+                const video = modalBody.querySelector('video'); if (!video) return;
+                const time = parseFloat(e.target.dataset.time);
+                if (!isNaN(time)) { video.currentTime = time; video.play(); }
+            }
+        });
+
+        closeModalBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
