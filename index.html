@@ -24,6 +24,13 @@
         .profile-header { display: flex; align-items: center; gap: 30px; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid var(--border-color); }
         .profile-header img { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent-color); }
         .profile-info h1 { font-size: 2.5rem; }
+        /* --- NOVO ESTILO ADICIONADO --- */
+        .actor-meta-info {
+            font-size: 1rem;
+            font-style: italic;
+            color: var(--secondary-text);
+            margin-top: 8px;
+        }
         .content-section h3 { font-size: 1.8rem; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
         .card { background-color: var(--card-bg); border-radius: 8px; overflow: hidden; transition: transform 0.2s ease; cursor: pointer; }
@@ -115,14 +122,55 @@
             const sortedIds = actorIds.sort((a, b) => a.localeCompare(b));
             actorListElement.innerHTML = sortedIds.map(id => `<li data-actor-id="${id}">${actorsData[id].informacoes_ator.nome || id}</li>`).join('');
         }
+        
+        // --- NOVA FUNÇÃO PARA CALCULAR IDADE ---
+        function calculateAge(dateString) {
+            if (!dateString || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return null;
+            const birthDate = new Date(dateString);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
 
+        // --- FUNÇÃO renderActorDetails MODIFICADA ---
         function renderActorDetails(actorId) {
             const data = actorsData[actorId]; if (!data) return;
             const info = data.informacoes_ator || {};
+
+            // Gera as informações de idade e país
+            const metaInfo = [];
+            const age = calculateAge(info.dataNascimento);
+            if (age !== null) {
+                metaInfo.push(`${age}y`);
+            }
+            if (info.pais) {
+                metaInfo.push(info.pais);
+            }
+            // Cria o HTML para as meta informações, se existirem
+            const metaHtml = metaInfo.length > 0 
+                ? `<p class="actor-meta-info">${metaInfo.join(' &bull; ')}</p>` 
+                : '';
+
             const cenasHtml = generateGridHtml(data.cenas, 'cenas');
             const filmesHtml = generateGridHtml(data.filmes, 'filmes');
             const videosHtml = generateGridHtml(data.videos, 'videos');
-            mainContentElement.innerHTML = `<div class="profile-header"><img src="${info.foto || ''}" alt="Foto de ${info.nome || ''}"><div class="profile-info"><h1>${info.nome || 'N/A'}</h1></div></div>${cenasHtml}${filmesHtml}${videosHtml}`;
+            
+            // Adiciona o metaHtml ao lado do nome
+            mainContentElement.innerHTML = `
+                <div class="profile-header">
+                    <img src="${info.foto || ''}" alt="Foto de ${info.nome || ''}">
+                    <div class="profile-info">
+                        <h1>${info.nome || 'N/A'}</h1>
+                        ${metaHtml}
+                    </div>
+                </div>
+                ${cenasHtml}
+                ${filmesHtml}
+                ${videosHtml}`;
         }
 
         function generateGridHtml(items, type) {
@@ -131,24 +179,12 @@
             return `<div class="content-section"><h3>${type.charAt(0).toUpperCase() + type.slice(1)}</h3><div class="grid">${cards}</div></div>`;
         }
 
-        // =========================================================================
-        // FUNÇÃO openModal TOTALMENTE CORRIGIDA E COMPLETA
-        // =========================================================================
-         function openModal(item, currentActorName) {
+        function openModal(item, currentActorName) {
             const link = item.pagina || '#';
-
-            // --- INÍCIO DA CORREÇÃO ---
-            // ANTES (Incorreto):
-            // const isVideo = link.toLowerCase().endsWith('.mp4') || ...
-
-            // AGORA (Correto):
-            // Verificamos o URL ANTES de qualquer parâmetro '?'
             const urlPath = link.split('?')[0];
             const isVideo = urlPath.toLowerCase().endsWith('.mp4') || 
                             urlPath.toLowerCase().endsWith('.webm') || 
                             urlPath.toLowerCase().endsWith('.ogg');
-            // --- FIM DA CORREÇÃO ---
-
             const mediaPlayerHtml = `<div class="media-player"><div class="aspect-ratio-box">${isVideo ? `<video src="${link}" controls autoplay playsinline></video>` : `<iframe src="${link}" frameborder="0" allowfullscreen></iframe>`}</div></div>`;
 
             let otherActorsHtml = '<li>Nenhuma outra atriz encontrada.</li>';
@@ -158,7 +194,6 @@
             }
             
             let videoTagsHtml = '';
-            // Agora esta condição irá funcionar corretamente
             if (isVideo && item.tags && item.tags.length > 0) {
                 const tags = item.tags.map(tag => `<span class="tag-item" data-time="${tag.time}">${tag.label}</span>`).join('');
                 videoTagsHtml = `<h4>Tags</h4><div class="media-tags">${tags}</div>`;
@@ -170,8 +205,6 @@
             modal.classList.add('visible');
             document.addEventListener('keydown', handleEscKey);
         }
-
-        
 
         function closeModal() {
             modal.classList.remove('visible');
@@ -201,7 +234,6 @@
             }
         });
 
-        // Event listener para os cliques nas TAGS
         modalBody.addEventListener('click', (e) => {
             if (e.target.classList.contains('tag-item')) {
                 const video = modalBody.querySelector('video'); if (!video) return;
