@@ -10,6 +10,8 @@
             --bg-color: #121212; --sidebar-bg: #1e1e1e; --card-bg: #282828; --primary-text: #ffffff; --secondary-text: #b3b3b3; --accent-color: #1db954; --hover-color: #333333; --border-color: #404040;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* Adicionado para scroll suave */
+        html { scroll-behavior: smooth; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--primary-text); display: flex; height: 100vh; overflow: hidden; }
         .app-container { display: flex; width: 100%; height: 100%; }
         #sidebar { width: 280px; background-color: var(--sidebar-bg); padding: 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); flex-shrink: 0; }
@@ -21,24 +23,31 @@
         #actor-list li.active { background-color: var(--accent-color); color: var(--bg-color); font-weight: 700; }
         #main-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
         #main-content::-webkit-scrollbar { width: 8px; } #main-content::-webkit-scrollbar-track { background: var(--bg-color); } #main-content::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-        .profile-header { display: flex; align-items: center; gap: 30px; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid var(--border-color); }
+        .profile-header { display: flex; align-items: center; gap: 30px; margin-bottom: 20px; padding-bottom: 30px; border-bottom: 1px solid var(--border-color); }
         .profile-header img { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent-color); }
         .profile-info h1 { font-size: 2.5rem; }
-        /* --- NOVO ESTILO ADICIONADO --- */
-        .actor-meta-info {
-            font-size: 1rem;
-            font-style: italic;
-            color: var(--secondary-text);
-            margin-top: 8px;
-        }
+        .actor-meta-info { font-size: 1rem; font-style: italic; color: var(--secondary-text); margin-top: 8px; }
+        
+        /* --- ESTILOS PARA O NOVO SUBMENU --- */
+        #actor-submenu { display: flex; gap: 15px; margin-bottom: 40px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+        #actor-submenu a { text-decoration: none; color: var(--secondary-text); font-weight: bold; padding: 8px 16px; border-radius: 20px; transition: background-color 0.2s, color 0.2s; }
+        #actor-submenu a:hover { background-color: var(--hover-color); color: var(--primary-text); }
+
         .content-section h3 { font-size: 1.8rem; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
         .card { background-color: var(--card-bg); border-radius: 8px; overflow: hidden; transition: transform 0.2s ease; cursor: pointer; }
         .card:hover { transform: translateY(-5px); }
-        .card img { width: 100%; height: 300px; object-fit: cover; display: block; pointer-events: none; }
-        .card-body { padding: 15px; pointer-events: none; }
-        .card-body h4 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .card-body p { font-size: 0.85rem; color: var(--secondary-text); }
+        .card img { width: 100%; height: 300px; object-fit: cover; display: block; }
+        .card-body { padding: 15px; } .card-body h4 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .card-body p { font-size: 0.85rem; color: var(--secondary-text); }
+
+        /* --- ESTILOS PARA A TABELA DE CRONOLOGIA --- */
+        #chronology-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        #chronology-table th, #chronology-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        #chronology-table thead th { background-color: var(--sidebar-bg); color: var(--accent-color); font-size: 0.9rem; text-transform: uppercase; }
+        #chronology-table tbody tr:nth-child(odd) { background-color: var(--hover-color); }
+        .view-content-btn { background: none; border: none; color: var(--accent-color); font-size: 1.5rem; cursor: pointer; transition: transform 0.2s; }
+        .view-content-btn:hover { transform: scale(1.2); }
+
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .spinner { border: 8px solid var(--border-color); border-top: 8px solid var(--accent-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -51,14 +60,8 @@
         .media-player .aspect-ratio-box { width: 100%; aspect-ratio: 16 / 9; }
         .media-player video, .media-player iframe { width: 100%; height: 100%; border: none; }
         .media-info { flex: 1; padding: 25px; background-color: var(--sidebar-bg); overflow-y: auto; }
-        .media-info h3 { font-size: 1.5rem; margin-bottom: 15px; }
-        .media-info p { margin-bottom: 20px; color: var(--secondary-text); }
-        .media-info h4 { font-size: 1.1rem; margin-top: 25px; margin-bottom: 10px; color: var(--accent-color); border-top: 1px solid var(--border-color); padding-top: 15px; }
-        .media-info ul { list-style: none; padding: 0; }
-        .media-info li { margin-bottom: 8px; }
-        .media-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-        .tag-item { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 15px; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s ease; }
-        .tag-item:hover { background-color: var(--accent-color); color: var(--bg-color); border-color: var(--accent-color); }
+        .media-info h3 { font-size: 1.5rem; margin-bottom: 15px; } .media-info p { margin-bottom: 20px; color: var(--secondary-text); } .media-info h4 { font-size: 1.1rem; margin-top: 25px; margin-bottom: 10px; color: var(--accent-color); border-top: 1px solid var(--border-color); padding-top: 15px; } .media-info ul { list-style: none; padding: 0; } .media-info li { margin-bottom: 8px; }
+        .media-tags { display: flex; flex-wrap: wrap; gap: 8px; } .tag-item { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 15px; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s ease; } .tag-item:hover { background-color: var(--accent-color); color: var(--bg-color); border-color: var(--accent-color); }
     </style>
 </head>
 <body>
@@ -123,68 +126,122 @@
             actorListElement.innerHTML = sortedIds.map(id => `<li data-actor-id="${id}">${actorsData[id].informacoes_ator.nome || id}</li>`).join('');
         }
         
-        // --- NOVA FUNÇÃO PARA CALCULAR IDADE ---
         function calculateAge(dateString) {
-            if (!dateString || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return null;
-            const birthDate = new Date(dateString);
+            if (!dateString) return null;
+            const normalizedDate = dateString.replace(/\//g, '-');
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) return null;
+            const birthDate = new Date(normalizedDate);
             const today = new Date();
             let age = today.getFullYear() - birthDate.getFullYear();
             const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
             return age;
         }
 
-        // --- FUNÇÃO renderActorDetails MODIFICADA ---
+        // --- FUNÇÃO renderActorDetails TOTALMENTE REFEITA ---
         function renderActorDetails(actorId) {
             const data = actorsData[actorId]; if (!data) return;
             const info = data.informacoes_ator || {};
 
-            // Gera as informações de idade e país
             const metaInfo = [];
             const age = calculateAge(info.dataNascimento);
-            if (age !== null) {
-                metaInfo.push(`${age}y`);
-            }
-            if (info.pais) {
-                metaInfo.push(info.pais);
-            }
-            // Cria o HTML para as meta informações, se existirem
-            const metaHtml = metaInfo.length > 0 
-                ? `<p class="actor-meta-info">${metaInfo.join(' &bull; ')}</p>` 
-                : '';
+            if (age !== null) metaInfo.push(`${age}y`);
+            if (info.pais) metaInfo.push(info.pais);
+            const metaHtml = metaInfo.length > 0 ? `<p class="actor-meta-info">${metaInfo.join(' &bull; ')}</p>` : '';
+            
+            const profileHeaderHtml = `
+                <div class="profile-header">
+                    <img src="${info.foto || ''}" alt="Foto de ${info.nome || ''}">
+                    <div class="profile-info"><h1>${info.nome || 'N/A'}</h1>${metaHtml}</div>
+                </div>`;
 
+            const submenuHtml = `
+                <nav id="actor-submenu">
+                    <a href="#section-chronology">Cronologia</a>
+                    <a href="#section-cenas">Cenas</a>
+                    <a href="#section-filmes">Filmes</a>
+                    <a href="#section-videos">Vídeos</a>
+                </nav>`;
+            
+            // Gerar HTML para cada secção
+            const chronologyHtml = generateChronologyTableHtml(data.videos, info.id || actorId);
             const cenasHtml = generateGridHtml(data.cenas, 'cenas');
             const filmesHtml = generateGridHtml(data.filmes, 'filmes');
             const videosHtml = generateGridHtml(data.videos, 'videos');
+
+            mainContentElement.innerHTML = profileHeaderHtml + submenuHtml + chronologyHtml + cenasHtml + filmesHtml + videosHtml;
+        }
+        
+        // --- NOVA FUNÇÃO PARA GERAR A TABELA DE CRONOLOGIA ---
+        function generateChronologyTableHtml(videos, currentActorId) {
+            if (!videos || videos.length === 0) return '';
             
-            // Adiciona o metaHtml ao lado do nome
-            mainContentElement.innerHTML = `
-                <div class="profile-header">
-                    <img src="${info.foto || ''}" alt="Foto de ${info.nome || ''}">
-                    <div class="profile-info">
-                        <h1>${info.nome || 'N/A'}</h1>
-                        ${metaHtml}
-                    </div>
-                </div>
-                ${cenasHtml}
-                ${filmesHtml}
-                ${videosHtml}`;
+            // Função para converter data em objeto Date, independentemente do formato
+            const parseDate = (dateString) => {
+                if (!dateString) return null;
+                return new Date(dateString.replace(/\//g, '-'));
+            };
+
+            // Ordenar vídeos: mais recentes primeiro
+            const sortedVideos = [...videos].sort((a, b) => {
+                const dateA = parseDate(a.data);
+                const dateB = parseDate(b.data);
+                if (!dateA) return 1;
+                if (!dateB) return -1;
+                return dateB - dateA; // Descendente
+            });
+
+            const tableRows = sortedVideos.map(video => {
+                const otherActors = (video.atores || [])
+                    .map(actorId => actorIdToDataMap[actorId]) // Mapeia ID para objeto de ator
+                    .filter(actorInfo => actorInfo && (actorInfo.id !== currentActorId && actorInfo.nome !== actorsData[currentActorId].informacoes_ator.nome)) // Filtra atores válidos e o ator atual
+                    .map(actorInfo => actorInfo.nome) // Pega o nome
+                    .join(', ');
+
+                return `
+                    <tr>
+                        <td>${video.data || 'N/A'}</td>
+                        <td>${video.nome || 'N/A'}</td>
+                        <td>${otherActors || 'N/A'}</td>
+                        <td>
+                            <button class="view-content-btn" data-type="videos" data-id="${video.nome}">▶</button>
+                        </td>
+                    </tr>`;
+            }).join('');
+
+            return `
+                <div id="section-chronology" class="content-section">
+                    <h3>Cronologia</h3>
+                    <table id="chronology-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Nome</th>
+                                <th>Outros Atores</th>
+                                <th>Ver</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </div>`;
         }
 
+        // Adicionado 'id' ao wrapper da secção para o scroll funcionar
         function generateGridHtml(items, type) {
             if (!items || items.length === 0) return '';
-            const cards = items.map(item => `<div class="card" data-type="${type}" data-id="${item.nome}"><img src="${item.imagem || ''}" alt="${item.nome || ''}"><div class="card-body"><h4>${item.nome || 'N/A'}</h4><p>${item.data || item.ano || ''}</p></div></div>`).join('');
-            return `<div class="content-section"><h3>${type.charAt(0).toUpperCase() + type.slice(1)}</h3><div class="grid">${cards}</div></div>`;
+            const title = type.charAt(0).toUpperCase() + type.slice(1);
+            const cards = items.map(item => `
+                <div class="card" data-type="${type}" data-id="${item.nome}">
+                    <img src="${item.imagem || ''}" alt="${item.nome || ''}">
+                    <div class="card-body"><h4>${item.nome || 'N/A'}</h4><p>${item.data || item.ano || ''}</p></div>
+                </div>`).join('');
+            return `<div id="section-${type}" class="content-section"><h3>${title}</h3><div class="grid">${cards}</div></div>`;
         }
 
         function openModal(item, currentActorName) {
             const link = item.pagina || '#';
             const urlPath = link.split('?')[0];
-            const isVideo = urlPath.toLowerCase().endsWith('.mp4') || 
-                            urlPath.toLowerCase().endsWith('.webm') || 
-                            urlPath.toLowerCase().endsWith('.ogg');
+            const isVideo = ['mp4', 'webm', 'ogg'].some(ext => urlPath.toLowerCase().endsWith('.' + ext));
             const mediaPlayerHtml = `<div class="media-player"><div class="aspect-ratio-box">${isVideo ? `<video src="${link}" controls autoplay playsinline></video>` : `<iframe src="${link}" frameborder="0" allowfullscreen></iframe>`}</div></div>`;
 
             let otherActorsHtml = '<li>Nenhuma outra atriz encontrada.</li>';
@@ -221,14 +278,15 @@
             }
         });
         
+        // Listener de clique modificado para apanhar também os botões da tabela
         mainContentElement.addEventListener('click', (e) => {
-            const clickedCard = e.target.closest('.card');
-            if (clickedCard) {
+            const mediaTrigger = e.target.closest('[data-type][data-id]');
+            if (mediaTrigger) {
                 const activeActorLi = actorListElement.querySelector('li.active'); if (!activeActorLi) return;
-                const actorName = activeActorLi.dataset.actorId;
-                const dataType = clickedCard.dataset.type;
-                const itemId = clickedCard.dataset.id;
-                const actorData = actorsData[actorName];
+                const actorId = activeActorLi.dataset.actorId;
+                const dataType = mediaTrigger.dataset.type;
+                const itemId = mediaTrigger.dataset.id;
+                const actorData = actorsData[actorId];
                 const itemData = actorData[dataType].find(item => item.nome === itemId);
                 if (itemData) { openModal(itemData, actorData.informacoes_ator.nome); }
             }
