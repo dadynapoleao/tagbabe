@@ -141,6 +141,7 @@
         const formatSecondsToTime = (seconds) => { const min = Math.floor(seconds / 60); const sec = seconds % 60; return `${min}:${sec.toString().padStart(2, '0')}`; };
 
         async function loadInitialData() {
+            console.log("LOG: Iniciando o carregamento dos dados do Firebase...");
             try {
                 const snapshot = await db.collection('all').get();
                 actorsCache = {};
@@ -164,44 +165,52 @@
 
                 const videoChoicesData = Array.from(allVideosMap.keys()).sort().map(name => ({ value: name, label: name }));
                 videoChoices.setChoices(videoChoicesData, 'value', 'label', true);
-            } catch (error) { showStatus('Erro ao carregar dados: ' + error.message, true); }
+
+                console.log(`LOG: Carregamento concluído. ${Object.keys(actorsCache).length} atores e ${allVideosMap.size} vídeos únicos encontrados.`);
+
+            } catch (error) { 
+                console.error("ERRO CRÍTICO ao carregar dados:", error);
+                showStatus('Erro ao carregar dados: ' + error.message, true); 
+            }
         }
         
         function populateFormWithVideoData(videoName) {
+            console.log(`LOG: Tentando preencher o formulário para o vídeo: "${videoName}"`);
             const videoData = allVideosMap.get(videoName);
+            
             if (!videoData) {
-                console.error("Tentativa de preencher formulário com vídeo não encontrado:", videoName);
+                console.error(`ERRO: Vídeo "${videoName}" não encontrado no 'allVideosMap'. Não é possível preencher o formulário.`);
                 resetForm();
                 return;
             }
             
-            // Define o valor no dropdown superior de edição
+            console.log("LOG: Dados do vídeo encontrados:", videoData);
+            
             videoChoices.setValue([{ value: videoName, label: videoName }]);
             currentEditingVideoData = videoData;
             
-            // Preenche todos os campos do formulário
             document.getElementById('video-nome').value = videoData.nome || '';
             document.getElementById('video-data').value = videoData.data || '';
             document.getElementById('video-estudio').value = videoData.estudio || '';
             document.getElementById('video-imagem').value = videoData.imagem || '';
             document.getElementById('video-pagina').value = videoData.pagina || '';
 
-            // Preenche os atores
             actorsChoices.removeActiveItems();
             if (videoData.atores && Array.isArray(videoData.atores)) {
                 const docIdsToSelect = Object.keys(actorsCache).filter(docId => 
                     videoData.atores.includes(actorsCache[docId].informacoes_ator.id)
                 );
+                console.log("LOG: IDs de atores a serem selecionados:", docIdsToSelect);
                 actorsChoices.setValue(docIdsToSelect);
             }
 
-            // Preenche as tags e o preview
             currentVideoTags = videoData.tags ? [...videoData.tags] : [];
             renderTags();
             updateUrlPreview();
             
             btnDelete.disabled = false;
             btnSave.textContent = 'Salvar Alterações';
+            console.log("LOG: Formulário preenchido com sucesso.");
         }
 
         function resetForm() {
@@ -217,37 +226,42 @@
         }
         
         async function initializePage() {
-            // Primeiro, inicializa as instâncias do Choices.js
+            console.log("LOG: Página está a inicializar...");
+            
             actorsChoices = new Choices('#video-atores', { removeItemButton: true, placeholder: true, placeholderValue: 'Pesquisar atores...' });
             videoChoices = new Choices('#video-selector', { placeholder: true, placeholderValue: 'Pesquisar um vídeo...', shouldSort: false });
             batchActorChoices = new Choices('#batch-actor-selector', { placeholder: true, placeholderValue: 'Pesquisar um ator...', shouldSort: false });
 
-            // Adiciona os event listeners
             document.getElementById('video-selector').addEventListener('change', (e) => populateFormWithVideoData(e.target.value));
             btnNew.addEventListener('click', resetForm);
             urlInput.addEventListener('input', updateUrlPreview);
             setupTagPanel();
             
-            // Depois, carrega todos os dados do Firebase
             await loadInitialData();
 
-            // SÓ DEPOIS que os dados estiverem prontos, verifica a URL
             const urlParams = new URLSearchParams(window.location.search);
-            const videoNameToEdit = urlParams.get('video'); // URLSearchParams decodifica automaticamente
+            const videoNameToEdit = urlParams.get('video');
+            
+            console.log(`LOG 1: Parâmetro 'video' lido da URL: "${videoNameToEdit}"`);
 
             if (videoNameToEdit) {
+                console.log("LOG 2: Parâmetro encontrado. A tentar processá-lo...");
+                console.log(`LOG 3: O vídeo "${videoNameToEdit}" existe no mapa de vídeos? Resposta:`, allVideosMap.has(videoNameToEdit));
+
                 if (allVideosMap.has(videoNameToEdit)) {
-                    // Se o vídeo existir, chama a função para preencher o formulário
+                    console.log("LOG 4: Sim, o vídeo existe. A chamar a função para preencher o formulário.");
                     populateFormWithVideoData(videoNameToEdit);
                 } else {
-                    showStatus(`Vídeo "${videoNameToEdit}" não foi encontrado.`, true);
+                    console.error("LOG 4: Não, o vídeo não foi encontrado no mapa!");
+                    showStatus(`Vídeo "${videoNameToEdit}" não foi encontrado nos dados carregados.`, true);
+                    console.log("Amostra de chaves de vídeo disponíveis:", Array.from(allVideosMap.keys()).slice(0, 10));
                 }
+            } else {
+                console.log("LOG 2: Nenhum parâmetro 'video' encontrado na URL. A página ficará em modo de 'Novo Vídeo'.");
             }
         }
         
         document.addEventListener('DOMContentLoaded', initializePage);
-
-        // --- RESTANTE DAS FUNÇÕES (EVENT LISTENERS DOS FORMULÁRIOS, BOTÕES, ETC.) ---
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
