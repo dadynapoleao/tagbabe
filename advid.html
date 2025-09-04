@@ -41,7 +41,10 @@
         .url-preview { display: none; margin-top: 15px; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; }
         .url-preview video, .url-preview iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: none; }
         .edit-section { border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }
-        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background-color: var(--accent-color); color: white; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); cursor: pointer; z-index: 1000; }
+        .fab-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 1000; }
+        .fab { width: 60px; height: 60px; background-color: var(--accent-color); color: white; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); cursor: pointer; }
+        .fab.fab-secondary { background-color: #4a4a4a; }
+        .fab svg { width: 24px; height: 24px; fill: currentColor; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 2000; }
         .modal-content { background-color: var(--sidebar-bg); padding: 30px; border-radius: 8px; width: 90%; max-width: 700px; position: relative; }
         .modal-close { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--primary-text); font-size: 24px; cursor: pointer; }
@@ -77,9 +80,7 @@
                      <div class="tags-input-group">
                         <div id="video-timer" class="timer-display">--:--</div>
                         <select id="tag-selector">
-                            <option value="blowjob">Blowjob</option><option value="cowgirl">Cowgirl</option><option value="missionary">Missionary</option>
-                            <option value="anal">Anal</option><option value="doggy">Doggy</option><option value="tittyfuck">Tittyfuck</option>
-                            <option value="cum">Cum</option><option value="piss">Piss</option><option value="feet">Feet</option>
+                            <option value="">Carregando tags...</option>
                         </select>
                         <input type="text" id="tag-time" placeholder="Min:Seg (ex: 2:03)">
                         <button type="button" id="add-tag-btn">Adicionar</button>
@@ -92,7 +93,13 @@
         <div id="status-message"></div>
     </div>
 
-    <button class="fab" id="fab-batch-add" title="Adicionar Vídeos em Lote">+</button>
+    <div class="fab-container">
+        <button class="fab fab-secondary" id="fab-manage-tags" title="Gerenciar Tags">
+            <svg viewBox="0 0 24 24"><path d="M5.5,7A1.5,1.5 0 0,1 4,5.5A1.5,1.5 0 0,1 5.5,4A1.5,1.5 0 0,1 7,5.5A1.5,1.5 0 0,1 5.5,7M21.41,11.58L12.41,2.58C12.05,2.22 11.55,2 11,2H4C2.89,2 2,2.89 2,4V11C2,11.55 2.22,12.05 2.59,12.41L11.59,21.41C11.95,21.77 12.45,22 13,22C13.55,22 14.05,21.77 14.41,21.41L21.41,14.41C21.78,14.05 22,13.55 22,13C22,12.45 21.77,11.95 21.41,11.58Z" /></svg>
+        </button>
+        <button class="fab" id="fab-batch-add" title="Adicionar Vídeos em Lote">+</button>
+    </div>
+
     <div class="modal-overlay" id="batch-modal">
         <div class="modal-content">
             <button class="modal-close" id="batch-modal-close">&times;</button>
@@ -101,6 +108,18 @@
             <div class="form-group"><label for="batch-text-input">Cole o texto aqui:</label><textarea id="batch-text-input" placeholder="Jun 08, 2022&#10;Nome do Vídeo 06/08/22&#10;..."></textarea></div>
             <button type="button" id="btn-process-batch">Processar e Salvar</button>
             <div id="batch-results"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="tag-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="tag-modal-close">&times;</button>
+            <h2>Adicionar Nova Tag</h2>
+            <div class="form-group">
+                <label for="new-tag-name">Nome da Tag</label>
+                <input type="text" id="new-tag-name" placeholder="Ex: deepthroat">
+            </div>
+            <button type="button" id="btn-save-tag">Salvar Nova Tag</button>
         </div>
     </div>
 
@@ -121,6 +140,7 @@
 
         let actorsCache = {};
         let allVideosMap = new Map();
+        let tagsCache = [];
         let actorsChoices, videoChoices, batchActorChoices;
         let currentVideoTags = [];
         let currentEditingVideoData = null;
@@ -135,11 +155,16 @@
         const urlPreview = document.getElementById('video-pagina-preview');
         const timerDisplay = document.getElementById('video-timer');
         const timeInput = document.getElementById('tag-time');
+        const tagSelector = document.getElementById('tag-selector');
         const fabBatchAdd = document.getElementById('fab-batch-add');
         const batchModal = document.getElementById('batch-modal');
         const batchModalClose = document.getElementById('batch-modal-close');
         const btnProcessBatch = document.getElementById('btn-process-batch');
         const batchResults = document.getElementById('batch-results');
+        const fabManageTags = document.getElementById('fab-manage-tags');
+        const tagModal = document.getElementById('tag-modal');
+        const tagModalClose = document.getElementById('tag-modal-close');
+        const btnSaveTag = document.getElementById('btn-save-tag');
 
         const showStatus = (message, isError = false) => { statusMessage.textContent = message; statusMessage.className = isError ? 'error' : 'success'; setTimeout(() => { statusMessage.style.display = 'none'; }, 5000); };
         const parseTimeToSeconds = (timeStr) => { if (!timeStr) return null; const parts = timeStr.split(':').map(Number); return parts.length === 2 ? parts[0] * 60 + parts[1] : (parts.length === 1 ? parts[0] : null); };
@@ -182,7 +207,27 @@
             urlPreview.style.display = 'block';
         }
 
-        async function loadInitialData() {
+        async function loadTags() {
+            try {
+                const snapshot = await db.collection('tags').get();
+                tagsCache = [];
+                snapshot.forEach(doc => { tagsCache.push(doc.data().name); });
+                tagsCache.sort();
+            } catch (error) { showStatus("Não foi possível carregar as tags.", true); }
+        }
+
+        function populateTagDropdown() {
+            tagSelector.innerHTML = '';
+            if (tagsCache.length === 0) { tagSelector.innerHTML = '<option value="">Nenhuma tag encontrada</option>'; return; }
+            tagsCache.forEach(tagName => {
+                const option = document.createElement('option');
+                option.value = tagName;
+                option.textContent = tagName.charAt(0).toUpperCase() + tagName.slice(1);
+                tagSelector.appendChild(option);
+            });
+        }
+
+        async function loadActorsAndVideos() {
             try {
                 const snapshot = await db.collection('all').get();
                 actorsCache = {};
@@ -193,7 +238,7 @@
                     if (data.informacoes_ator && data.informacoes_ator.nome) {
                         actorsCache[doc.id] = data;
                         actorChoicesData.push({ value: doc.id, label: data.informacoes_ator.nome });
-                        if (data.videos && data.videos.length > 0) {
+                        if (data.videos) {
                             data.videos.forEach(video => { if (!allVideosMap.has(video.nome)) { allVideosMap.set(video.nome, video); } });
                         }
                     }
@@ -203,9 +248,9 @@
                 batchActorChoices.setChoices(actorChoicesData, 'value', 'label', true);
                 const videoChoicesData = Array.from(allVideosMap.keys()).sort().map(name => ({ value: name, label: name }));
                 videoChoices.setChoices(videoChoicesData, 'value', 'label', true);
-            } catch (error) { showStatus('Erro ao carregar dados: ' + error.message, true); }
+            } catch (error) { showStatus('Erro ao carregar atores/vídeos: ' + error.message, true); }
         }
-        
+
         function populateFormWithVideoData(videoName) {
             const videoData = allVideosMap.get(videoName);
             if (!videoData) { resetForm(); return; }
@@ -256,17 +301,14 @@
             urlInput.addEventListener('input', updateUrlPreview);
             setupTagPanel();
             
-            await loadInitialData();
+            await Promise.all([loadActorsAndVideos(), loadTags()]);
+            populateTagDropdown();
 
             const urlParams = new URLSearchParams(window.location.search);
             const videoNameToEdit = urlParams.get('video');
 
-            if (videoNameToEdit) {
-                if (allVideosMap.has(videoNameToEdit)) {
-                    populateFormWithVideoData(videoNameToEdit);
-                } else {
-                    showStatus(`Vídeo "${videoNameToEdit}" não foi encontrado.`, true);
-                }
+            if (videoNameToEdit && allVideosMap.has(videoNameToEdit)) {
+                populateFormWithVideoData(videoNameToEdit);
             }
         }
         
@@ -307,7 +349,7 @@
                 await batch.commit();
                 showStatus(`Vídeo "${nome}" salvo com sucesso!`);
                 resetForm();
-                await loadInitialData();
+                await loadActorsAndVideos();
             } catch (error) { showStatus('Erro ao salvar vídeo: ' + error.message, true); }
         });
 
@@ -327,13 +369,21 @@
                 await batch.commit();
                 showStatus(`Vídeo "${videoName}" deletado com sucesso.`);
                 resetForm();
-                await loadInitialData();
+                await loadActorsAndVideos();
             } catch (error) { showStatus('Erro ao deletar: ' + error.message, true); }
         });
 
         function setupTagPanel() {
-            const addBtn = document.getElementById('add-tag-btn'), tagSelector = document.getElementById('tag-selector'), timeInput = document.getElementById('tag-time'), display = document.getElementById('tags-display');
-            addBtn.onclick = () => { const time = parseTimeToSeconds(timeInput.value); if (time === null) { showStatus('Formato de tempo inválido. Use Min:Seg.', true); return; } currentVideoTags.push({ label: tagSelector.value, time }); renderTags(); timeInput.value = ''; };
+            const addBtn = document.getElementById('add-tag-btn');
+            const display = document.getElementById('tags-display');
+            addBtn.onclick = () => {
+                const time = parseTimeToSeconds(timeInput.value);
+                if (time === null) { showStatus('Formato de tempo inválido. Use Min:Seg.', true); return; }
+                if (!tagSelector.value) { showStatus('Selecione uma tag.', true); return; }
+                currentVideoTags.push({ label: tagSelector.value, time });
+                renderTags();
+                timeInput.value = '';
+            };
             display.onclick = (e) => { if (e.target.classList.contains('remove-tag')) { currentVideoTags.splice(parseInt(e.target.dataset.index, 10), 1); renderTags(); } };
         }
         function renderTags() { document.getElementById('tags-display').innerHTML = currentVideoTags.sort((a, b) => a.time - b.time).map((tag, index) => `<span class="tag-item-editor">${tag.label} @ ${formatSecondsToTime(tag.time)} <span class="remove-tag" data-index="${index}">&times;</span></span>`).join(''); }
@@ -341,6 +391,25 @@
         fabBatchAdd.addEventListener('click', () => { batchModal.style.display = 'flex'; });
         batchModalClose.addEventListener('click', () => { batchModal.style.display = 'none'; });
         batchModal.addEventListener('click', (e) => { if (e.target === batchModal) { batchModal.style.display = 'none'; } });
+        
+        fabManageTags.addEventListener('click', () => { tagModal.style.display = 'flex'; });
+        tagModalClose.addEventListener('click', () => { tagModal.style.display = 'none'; });
+        tagModal.addEventListener('click', (e) => { if (e.target === tagModal) { tagModal.style.display = 'none'; } });
+        
+        btnSaveTag.addEventListener('click', async () => {
+            const newTagNameInput = document.getElementById('new-tag-name');
+            const newTagName = newTagNameInput.value.trim().toLowerCase();
+            if (!newTagName) { showStatus("O nome da tag não pode ser vazio.", true); return; }
+            if (tagsCache.includes(newTagName)) { showStatus(`A tag "${newTagName}" já existe.`, true); return; }
+            try {
+                await db.collection('tags').doc(newTagName).set({ name: newTagName });
+                showStatus("Tag salva com sucesso!", false);
+                newTagNameInput.value = '';
+                tagModal.style.display = 'none';
+                await loadTags();
+                populateTagDropdown();
+            } catch (error) { showStatus("Erro ao salvar a tag: " + error.message, true); }
+        });
 
         btnProcessBatch.addEventListener('click', async () => {
             const actorId = batchActorChoices.getValue(true);
@@ -360,12 +429,7 @@
                     const cleanTitle = lines[i+1].replace(/\s*\d{1,2}\/\d{1,2}\/\d{2,4}\s*$/, '').trim();
                     if(cleanTitle) {
                         const actorInfoId = targetActor.informacoes_ator.id || actorId;
-                        newVideos.push({
-                            nome: cleanTitle,
-                            data: isoDate,
-                            timestamp: new Date().toISOString(),
-                            atores: [actorInfoId]
-                        });
+                        newVideos.push({ nome: cleanTitle, data: isoDate, timestamp: new Date().toISOString(), atores: [actorInfoId] });
                     }
                     i++;
                     if ((i + 1) < lines.length && !isNaN(parseInt(lines[i+1], 10))) { i++; }
@@ -390,7 +454,7 @@
             if (videosToAdd.length > 0) {
                 try {
                     await db.collection('all').doc(actorId).update({ videos: [...existingVideos, ...videosToAdd] });
-                    await loadInitialData(); 
+                    await loadActorsAndVideos();
                 } catch (error) { showStatus('Erro ao salvar em lote: ' + error.message, true); }
             }
         });
