@@ -20,7 +20,7 @@
         #search-input { flex-grow: 1; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--primary-text); font-size: 0.9rem; }
         #advanced-search-btn { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; border: none; background-color: var(--card-bg); color: var(--accent-color); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
         #advanced-search-btn:hover { background-color: var(--hover-color); }
-        #advanced-search-btn svg { width: 20px; height: 20px; fill: currentColor; }
+        #advanced-search-btn svg { width: 22px; height: 22px; fill: currentColor; }
         
         #sidebar h2 { font-size: 1.5rem; margin-bottom: 20px; color: var(--accent-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; }
         #actor-list { list-style: none; overflow-y: auto; flex-grow: 1; }
@@ -98,7 +98,8 @@
             <div id="search-container">
                 <input type="text" id="search-input" placeholder="Pesquisar por nome...">
                 <button id="advanced-search-btn" title="Pesquisa Avançada">
-                    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM12 10h-2v2H9v-2H7V9h2V7h1v2h2v1z"></path></svg>
+                    <!-- ÍCONE SVG ATUALIZADO PARA MELHOR VISUAL -->
+                    <svg viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M11,8V6H8V8H6V11H8V13H11V11H13V8H11Z" /></svg>
                 </button>
             </div>
             <h2>Atores</h2>
@@ -304,8 +305,10 @@
         function renderActorList(actorIds) {
             const sortedIds = actorIds.sort((a, b) => actorsData[a].informacoes_ator.nome.localeCompare(actorsData[b].informacoes_ator.nome));
             actorListElement.innerHTML = sortedIds.map(id => `<li data-actor-id="${id}">${actorsData[id].informacoes_ator.nome}</li>`).join('');
-            // Se houver uma lista, limpa o conteúdo principal
-            if (sortedIds.length > 0) {
+            
+            if (actorListElement.querySelector('.active')) {
+                // Não faz nada para não limpar a tela de um ator selecionado
+            } else if (sortedIds.length > 0) {
                 mainContentElement.innerHTML = '<p style="text-align: center; color: var(--secondary-text);">Selecione um ator na lista para ver os detalhes.</p>';
             } else {
                  mainContentElement.innerHTML = '<p style="text-align: center; color: var(--secondary-text);">Nenhum resultado encontrado para os filtros aplicados.</p>';
@@ -317,13 +320,10 @@
             const normalizedDate = dateString.replace(/\//g, '-');
             const parts = normalizedDate.split('-');
             if (parts.length !== 3) return null;
-            // Garantir que a data está no formato YYYY-MM-DD
             const formattedDate = parts[2].length === 4 ? `${parts[2]}-${parts[1]}-${parts[0]}` : `${parts[0]}-${parts[1]}-${parts[2]}`;
             if (!/^\d{4}-\d{2}-\d{2}$/.test(formattedDate)) return null;
-            
             const birthDate = new Date(formattedDate);
             if (isNaN(birthDate.getTime())) return null;
-
             const today = new Date();
             let age = today.getFullYear() - birthDate.getFullYear();
             const m = today.getMonth() - birthDate.getMonth();
@@ -422,20 +422,15 @@
             }
         });
 
-        // Listeners para fechar os modais
         document.querySelectorAll('.modal').forEach(modalEl => {
             modalEl.addEventListener('click', (e) => { if (e.target === modalEl) closeModal(modalEl); });
             modalEl.querySelector('.modal-close').addEventListener('click', () => closeModal(modalEl));
         });
 
-        // Listener para toggle dos dropdowns customizados
         document.body.addEventListener('click', e => {
             if (e.target.classList.contains('multiselect-btn')) {
                 const options = e.target.nextElementSibling;
-                // Fecha outros dropdowns abertos
-                document.querySelectorAll('.multiselect-options.visible').forEach(opt => {
-                    if (opt !== options) opt.classList.remove('visible');
-                });
+                document.querySelectorAll('.multiselect-options.visible').forEach(opt => { if (opt !== options) opt.classList.remove('visible'); });
                 options.classList.toggle('visible');
             } else if (!e.target.closest('.custom-multiselect')) {
                 document.querySelectorAll('.multiselect-options').forEach(opt => opt.classList.remove('visible'));
