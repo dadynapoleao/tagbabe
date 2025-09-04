@@ -15,7 +15,7 @@
         .app-container { display: flex; width: 100%; height: 100%; }
         #sidebar { width: 280px; background-color: var(--sidebar-bg); padding: 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); flex-shrink: 0; }
         
-        /* --- ESTILOS PARA A PESQUISA --- */
+        /* --- ESTILOS PARA A PESQUISA (DENTRO DA SIDEBAR) --- */
         #search-container { display: flex; gap: 10px; margin-bottom: 20px; }
         #search-input { flex-grow: 1; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--primary-text); font-size: 0.9rem; }
         #advanced-search-btn { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; border: none; background-color: var(--card-bg); color: var(--accent-color); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
@@ -392,7 +392,7 @@
         searchInput.addEventListener('input', applyFilters);
         advancedSearchBtn.addEventListener('click', () => advancedSearchModal.classList.add('visible'));
         applyFiltersBtn.addEventListener('click', () => { applyFilters(); closeModal(advancedSearchModal); });
-        resetFiltersBtn.addEventListener('click', () => { advancedSearchForm.reset(); applyFilters(); });
+        resetFiltersBtn.addEventListener('click', () => { advancedSearchForm.reset(); document.querySelectorAll('.custom-multiselect input[type="checkbox"]').forEach(c => c.checked = false); applyFilters(); });
 
         actorListElement.addEventListener('click', (e) => {
             if (e.target && e.target.nodeName === 'LI') {
@@ -432,6 +432,10 @@
         document.body.addEventListener('click', e => {
             if (e.target.classList.contains('multiselect-btn')) {
                 const options = e.target.nextElementSibling;
+                // Fecha outros dropdowns abertos
+                document.querySelectorAll('.multiselect-options.visible').forEach(opt => {
+                    if (opt !== options) opt.classList.remove('visible');
+                });
                 options.classList.toggle('visible');
             } else if (!e.target.closest('.custom-multiselect')) {
                 document.querySelectorAll('.multiselect-options').forEach(opt => opt.classList.remove('visible'));
