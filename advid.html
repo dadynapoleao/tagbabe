@@ -141,13 +141,11 @@
         const formatSecondsToTime = (seconds) => { const min = Math.floor(seconds / 60); const sec = seconds % 60; return `${min}:${sec.toString().padStart(2, '0')}`; };
 
         async function loadInitialData() {
-            console.log("LOG: Iniciando o carregamento dos dados do Firebase...");
             try {
                 const snapshot = await db.collection('all').get();
                 actorsCache = {};
                 allVideosMap.clear();
                 const actorChoicesData = [];
-
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.informacoes_ator && data.informacoes_ator.nome) {
@@ -158,33 +156,17 @@
                         }
                     }
                 });
-
                 actorChoicesData.sort((a, b) => a.label.localeCompare(b.label));
                 actorsChoices.setChoices(actorChoicesData, 'value', 'label', true);
                 batchActorChoices.setChoices(actorChoicesData, 'value', 'label', true);
-
                 const videoChoicesData = Array.from(allVideosMap.keys()).sort().map(name => ({ value: name, label: name }));
                 videoChoices.setChoices(videoChoicesData, 'value', 'label', true);
-
-                console.log(`LOG: Carregamento concluído. ${Object.keys(actorsCache).length} atores e ${allVideosMap.size} vídeos únicos encontrados.`);
-
-            } catch (error) { 
-                console.error("ERRO CRÍTICO ao carregar dados:", error);
-                showStatus('Erro ao carregar dados: ' + error.message, true); 
-            }
+            } catch (error) { showStatus('Erro ao carregar dados: ' + error.message, true); }
         }
         
         function populateFormWithVideoData(videoName) {
-            console.log(`LOG: Tentando preencher o formulário para o vídeo: "${videoName}"`);
             const videoData = allVideosMap.get(videoName);
-            
-            if (!videoData) {
-                console.error(`ERRO: Vídeo "${videoName}" não encontrado no 'allVideosMap'. Não é possível preencher o formulário.`);
-                resetForm();
-                return;
-            }
-            
-            console.log("LOG: Dados do vídeo encontrados:", videoData);
+            if (!videoData) { resetForm(); return; }
             
             videoChoices.setValue([{ value: videoName, label: videoName }]);
             currentEditingVideoData = videoData;
@@ -200,17 +182,14 @@
                 const docIdsToSelect = Object.keys(actorsCache).filter(docId => 
                     videoData.atores.includes(actorsCache[docId].informacoes_ator.id)
                 );
-                console.log("LOG: IDs de atores a serem selecionados:", docIdsToSelect);
                 actorsChoices.setValue(docIdsToSelect);
             }
 
             currentVideoTags = videoData.tags ? [...videoData.tags] : [];
             renderTags();
             updateUrlPreview();
-            
             btnDelete.disabled = false;
             btnSave.textContent = 'Salvar Alterações';
-            console.log("LOG: Formulário preenchido com sucesso.");
         }
 
         function resetForm() {
@@ -226,8 +205,6 @@
         }
         
         async function initializePage() {
-            console.log("LOG: Página está a inicializar...");
-            
             actorsChoices = new Choices('#video-atores', { removeItemButton: true, placeholder: true, placeholderValue: 'Pesquisar atores...' });
             videoChoices = new Choices('#video-selector', { placeholder: true, placeholderValue: 'Pesquisar um vídeo...', shouldSort: false });
             batchActorChoices = new Choices('#batch-actor-selector', { placeholder: true, placeholderValue: 'Pesquisar um ator...', shouldSort: false });
@@ -241,23 +218,13 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const videoNameToEdit = urlParams.get('video');
-            
-            console.log(`LOG 1: Parâmetro 'video' lido da URL: "${videoNameToEdit}"`);
 
             if (videoNameToEdit) {
-                console.log("LOG 2: Parâmetro encontrado. A tentar processá-lo...");
-                console.log(`LOG 3: O vídeo "${videoNameToEdit}" existe no mapa de vídeos? Resposta:`, allVideosMap.has(videoNameToEdit));
-
                 if (allVideosMap.has(videoNameToEdit)) {
-                    console.log("LOG 4: Sim, o vídeo existe. A chamar a função para preencher o formulário.");
                     populateFormWithVideoData(videoNameToEdit);
                 } else {
-                    console.error("LOG 4: Não, o vídeo não foi encontrado no mapa!");
-                    showStatus(`Vídeo "${videoNameToEdit}" não foi encontrado nos dados carregados.`, true);
-                    console.log("Amostra de chaves de vídeo disponíveis:", Array.from(allVideosMap.keys()).slice(0, 10));
+                    showStatus(`Vídeo "${videoNameToEdit}" não foi encontrado.`, true);
                 }
-            } else {
-                console.log("LOG 2: Nenhum parâmetro 'video' encontrado na URL. A página ficará em modo de 'Novo Vídeo'.");
             }
         }
         
@@ -286,28 +253,19 @@
             try {
                 const batch = db.batch();
                 let actorIdsToUpdate = new Set(selectedActorIds);
-                
-                if (isEditing) {
-                    Object.keys(actorsCache).forEach(actorId => {
-                        if (actorsCache[actorId].videos?.some(v => v.nome === originalName)) { actorIdsToUpdate.add(actorId); }
-                    });
-                }
-
+                if (isEditing) { Object.keys(actorsCache).forEach(actorId => { if (actorsCache[actorId].videos?.some(v => v.nome === originalName)) { actorIdsToUpdate.add(actorId); } }); }
                 actorIdsToUpdate.forEach(actorId => {
                     const docRef = db.collection('all').doc(actorId);
                     const actorData = actorsCache[actorId];
                     let newVideos = actorData.videos ? [...actorData.videos] : [];
-
                     if (isEditing) { newVideos = newVideos.filter(v => v.nome !== originalName); }
                     if (selectedActorIds.includes(actorId)) { newVideos.push(videoData); }
                     batch.update(docRef, { videos: newVideos });
                 });
-                
                 await batch.commit();
                 showStatus(`Vídeo "${nome}" salvo com sucesso!`);
                 resetForm();
                 await loadInitialData();
-
             } catch (error) { showStatus('Erro ao salvar vídeo: ' + error.message, true); }
         });
 
@@ -315,13 +273,10 @@
             if (!currentEditingVideoData) return;
             const videoName = currentEditingVideoData.nome;
             if (!confirm(`Tem certeza que deseja deletar o vídeo "${videoName}"?`)) { return; }
-
             try {
                 const batch = db.batch();
                 let actorIdsToUpdate = new Set();
-                Object.keys(actorsCache).forEach(actorId => {
-                    if (actorsCache[actorId].videos?.some(v => v.nome === videoName)) { actorIdsToUpdate.add(actorId); }
-                });
+                Object.keys(actorsCache).forEach(actorId => { if (actorsCache[actorId].videos?.some(v => v.nome === videoName)) { actorIdsToUpdate.add(actorId); } });
                 actorIdsToUpdate.forEach(actorId => {
                     const docRef = db.collection('all').doc(actorId);
                     const updatedVideos = (actorsCache[actorId].videos || []).filter(v => v.nome !== videoName);
@@ -339,9 +294,7 @@
             addBtn.onclick = () => { const time = parseTimeToSeconds(timeInput.value); if (time === null) { showStatus('Formato de tempo inválido. Use Min:Seg.', true); return; } currentVideoTags.push({ label: tagSelector.value, time }); renderTags(); timeInput.value = ''; };
             display.onclick = (e) => { if (e.target.classList.contains('remove-tag')) { currentVideoTags.splice(parseInt(e.target.dataset.index, 10), 1); renderTags(); } };
         }
-        function renderTags() {
-            document.getElementById('tags-display').innerHTML = currentVideoTags.sort((a, b) => a.time - b.time).map((tag, index) => `<span class="tag-item-editor">${tag.label} @ ${formatSecondsToTime(tag.time)} <span class="remove-tag" data-index="${index}">&times;</span></span>`).join('');
-        }
+        function renderTags() { document.getElementById('tags-display').innerHTML = currentVideoTags.sort((a, b) => a.time - b.time).map((tag, index) => `<span class="tag-item-editor">${tag.label} @ ${formatSecondsToTime(tag.time)} <span class="remove-tag" data-index="${index}">&times;</span></span>`).join(''); }
         function updateUrlPreview() {
             const url = urlInput.value.trim();
             if (!url) { urlPreview.innerHTML = ''; urlPreview.style.display = 'none'; return; }
@@ -370,7 +323,17 @@
                 if (!isNaN(potentialDate.getTime()) && (i + 1) < lines.length) {
                     const isoDate = potentialDate.toISOString().split('T')[0];
                     const cleanTitle = lines[i+1].replace(/\s*\d{1,2}\/\d{1,2}\/\d{2,4}\s*$/, '').trim();
-                    if(cleanTitle) { newVideos.push({ nome: cleanTitle, data: isoDate, timestamp: new Date().toISOString() }); }
+                    if(cleanTitle) {
+                        // --- CORREÇÃO APLICADA AQUI ---
+                        // Adiciona o array 'atores' com o ID do ator selecionado
+                        const actorInfoId = targetActor.informacoes_ator.id || actorId;
+                        newVideos.push({
+                            nome: cleanTitle,
+                            data: isoDate,
+                            timestamp: new Date().toISOString(),
+                            atores: [actorInfoId] // Associa o vídeo ao ator
+                        });
+                    }
                     i++;
                     if ((i + 1) < lines.length && !isNaN(parseInt(lines[i+1], 10))) { i++; }
                 }
