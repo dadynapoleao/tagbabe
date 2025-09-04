@@ -15,42 +15,47 @@
         .app-container { display: flex; width: 100%; height: 100%; }
         #sidebar { width: 280px; background-color: var(--sidebar-bg); padding: 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); flex-shrink: 0; }
         
-        /* --- ESTILOS CORRIGIDOS PARA A PESQUISA --- */
-        #search-container { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+        /* --- ESTILOS REFINADOS PARA A PESQUISA INTEGRADA --- */
+        #search-container {
+            display: flex;
+            align-items: center;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 25px; /* Bordas arredondadas para o contêiner */
+            padding: 0 5px 0 15px; /* Espaçamento interno */
+            margin-bottom: 20px;
+            transition: border-color 0.2s ease-in-out;
+        }
+        #search-container:focus-within { /* Efeito de foco no contêiner */
+            border-color: var(--accent-color);
+        }
         #search-input {
             flex-grow: 1;
-            padding: 10px 15px;
-            border-radius: 25px; /* Mais arredondado */
-            border: 1px solid var(--border-color);
-            background-color: var(--card-bg); /* Cor de fundo correspondente */
+            background-color: transparent; /* Remove fundo do input */
+            border: none; /* Remove borda do input */
+            outline: none; /* Remove contorno de foco do input */
             color: var(--primary-text);
             font-size: 0.9rem;
-            transition: border-color 0.2s;
-            outline: none;
+            padding: 10px 0;
+            width: 100%; /* Garante que o input preencha o espaço */
         }
-        #search-input:focus { border-color: var(--accent-color); }
         #search-input::placeholder { color: var(--secondary-text); opacity: 0.7; }
         #advanced-search-btn {
             flex-shrink: 0;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: none;
-            background-color: var(--card-bg); /* Cor de fundo correspondente */
-            color: var(--secondary-text); /* Cor do ícone mais suave */
+            width: 35px;
+            height: 35px;
+            border: none; /* Remove borda do botão */
+            background-color: transparent; /* Remove fundo do botão */
+            color: var(--secondary-text);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.2s, color 0.2s;
+            transition: color 0.2s;
+            border-radius: 50%;
         }
-        #advanced-search-btn:hover { background-color: var(--hover-color); color: var(--primary-text); }
-        #advanced-search-btn svg {
-            width: 22px;
-            height: 22px;
-            fill: currentColor;
-            pointer-events: none; /* <-- CORREÇÃO CRÍTICA PARA O CLIQUE */
-        }
+        #advanced-search-btn:hover { color: var(--primary-text); }
+        #advanced-search-btn svg { width: 20px; height: 20px; fill: currentColor; pointer-events: none; }
         
         #sidebar h2 { font-size: 1.5rem; margin-bottom: 20px; color: var(--accent-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; }
         #actor-list { list-style: none; overflow-y: auto; flex-grow: 1; }
@@ -168,7 +173,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script>
-        // O CÓDIGO JAVASCRIPT PERMANECE O MESMO - NENHUMA ALTERAÇÃO NECESSÁRIA AQUI
+        // O CÓDIGO JAVASCRIPT PERMANECE O MESMO
         const firebaseConfig = {
           apiKey: "AIzaSyBZEffPMXgbSHYUUrNdIS5duAVGlKlmSq0",
           authDomain: "babes-392fd.firebaseapp.com",
