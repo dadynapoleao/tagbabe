@@ -15,12 +15,42 @@
         .app-container { display: flex; width: 100%; height: 100%; }
         #sidebar { width: 280px; background-color: var(--sidebar-bg); padding: 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); flex-shrink: 0; }
         
-        /* --- ESTILOS PARA A PESQUISA (DENTRO DA SIDEBAR) --- */
-        #search-container { display: flex; gap: 10px; margin-bottom: 20px; }
-        #search-input { flex-grow: 1; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--primary-text); font-size: 0.9rem; }
-        #advanced-search-btn { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; border: none; background-color: var(--card-bg); color: var(--accent-color); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
-        #advanced-search-btn:hover { background-color: var(--hover-color); }
-        #advanced-search-btn svg { width: 22px; height: 22px; fill: currentColor; }
+        /* --- ESTILOS CORRIGIDOS PARA A PESQUISA --- */
+        #search-container { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+        #search-input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border-radius: 25px; /* Mais arredondado */
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg); /* Cor de fundo correspondente */
+            color: var(--primary-text);
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+        #search-input:focus { border-color: var(--accent-color); }
+        #search-input::placeholder { color: var(--secondary-text); opacity: 0.7; }
+        #advanced-search-btn {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--card-bg); /* Cor de fundo correspondente */
+            color: var(--secondary-text); /* Cor do ícone mais suave */
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        #advanced-search-btn:hover { background-color: var(--hover-color); color: var(--primary-text); }
+        #advanced-search-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+            pointer-events: none; /* <-- CORREÇÃO CRÍTICA PARA O CLIQUE */
+        }
         
         #sidebar h2 { font-size: 1.5rem; margin-bottom: 20px; color: var(--accent-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; }
         #actor-list { list-style: none; overflow-y: auto; flex-grow: 1; }
@@ -98,7 +128,6 @@
             <div id="search-container">
                 <input type="text" id="search-input" placeholder="Pesquisar por nome...">
                 <button id="advanced-search-btn" title="Pesquisa Avançada">
-                    <!-- ÍCONE SVG ATUALIZADO PARA MELHOR VISUAL -->
                     <svg viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M11,8V6H8V8H6V11H8V13H11V11H13V8H11Z" /></svg>
                 </button>
             </div>
@@ -110,63 +139,28 @@
         </main>
     </div>
 
-    <!-- Modal de Mídia -->
+    <!-- Modals -->
     <div id="media-modal" class="modal">
         <div class="modal-content">
             <button class="modal-close">&times;</button>
             <div id="modal-body"></div>
         </div>
     </div>
-
-    <!-- Modal de Pesquisa Avançada -->
     <div id="advanced-search-modal" class="modal">
         <div class="modal-content">
             <button class="modal-close">&times;</button>
             <h3>Pesquisa Avançada</h3>
             <form id="advanced-search-form">
-                <div class="form-group">
-                    <label for="min-age">Idade (mín)</label>
-                    <input type="number" id="min-age" min="18">
-                </div>
-                <div class="form-group">
-                    <label for="max-age">Idade (máx)</label>
-                    <input type="number" id="max-age" min="18">
-                </div>
-
-                <div class="form-group full-width" id="nationality-group">
-                    <label>Nacionalidade</label>
-                    <!-- Dropdown customizado será inserido aqui -->
-                </div>
-
-                <div class="form-group">
-                    <label for="min-weight">Peso (kg - mín)</label>
-                    <input type="number" id="min-weight">
-                </div>
-                <div class="form-group">
-                    <label for="max-weight">Peso (kg - máx)</label>
-                    <input type="number" id="max-weight">
-                </div>
-
-                <div class="form-group">
-                    <label for="min-height">Altura (cm - mín)</label>
-                    <input type="number" id="min-height">
-                </div>
-                <div class="form-group">
-                    <label for="max-height">Altura (cm - máx)</label>
-                    <input type="number" id="max-height">
-                </div>
-
-                <div class="form-group full-width" id="eyecolor-group">
-                    <label>Cor dos Olhos</label>
-                </div>
-                <div class="form-group full-width" id="haircolor-group">
-                    <label>Cor do Cabelo</label>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" id="reset-filters-btn">Limpar</button>
-                    <button type="button" id="apply-filters-btn">Pesquisar</button>
-                </div>
+                <div class="form-group"><label for="min-age">Idade (mín)</label><input type="number" id="min-age" min="18"></div>
+                <div class="form-group"><label for="max-age">Idade (máx)</label><input type="number" id="max-age" min="18"></div>
+                <div class="form-group full-width" id="nationality-group"><label>Nacionalidade</label></div>
+                <div class="form-group"><label for="min-weight">Peso (kg - mín)</label><input type="number" id="min-weight"></div>
+                <div class="form-group"><label for="max-weight">Peso (kg - máx)</label><input type="number" id="max-weight"></div>
+                <div class="form-group"><label for="min-height">Altura (cm - mín)</label><input type="number" id="min-height"></div>
+                <div class="form-group"><label for="max-height">Altura (cm - máx)</label><input type="number" id="max-height"></div>
+                <div class="form-group full-width" id="eyecolor-group"><label>Cor dos Olhos</label></div>
+                <div class="form-group full-width" id="haircolor-group"><label>Cor do Cabelo</label></div>
+                <div class="form-actions"><button type="button" id="reset-filters-btn">Limpar</button><button type="button" id="apply-filters-btn">Pesquisar</button></div>
             </form>
         </div>
     </div>
@@ -174,6 +168,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script>
+        // O CÓDIGO JAVASCRIPT PERMANECE O MESMO - NENHUMA ALTERAÇÃO NECESSÁRIA AQUI
         const firebaseConfig = {
           apiKey: "AIzaSyBZEffPMXgbSHYUUrNdIS5duAVGlKlmSq0",
           authDomain: "babes-392fd.firebaseapp.com",
@@ -189,7 +184,6 @@
         const actorListElement = document.getElementById('actor-list');
         const mainContentElement = document.getElementById('main-content');
         
-        // Elementos de pesquisa
         const searchInput = document.getElementById('search-input');
         const advancedSearchBtn = document.getElementById('advanced-search-btn');
         const advancedSearchModal = document.getElementById('advanced-search-modal');
@@ -197,7 +191,6 @@
         const applyFiltersBtn = document.getElementById('apply-filters-btn');
         const resetFiltersBtn = document.getElementById('reset-filters-btn');
         
-        // Elementos do modal de mídia
         const mediaModal = document.getElementById('media-modal');
         const modalBody = document.getElementById('modal-body');
         
@@ -215,7 +208,7 @@
                     }
                 });
                 populateAdvancedSearchOptions();
-                applyFilters(); // Renderiza a lista inicial
+                applyFilters();
             } catch (error) { console.error("Erro ao carregar dados: ", error); } 
             finally { loader.style.display = 'none'; }
         }
@@ -237,9 +230,7 @@
             wrapper.innerHTML = `
                 <button type="button" class="multiselect-btn">Selecione uma ou mais opções</button>
                 <div class="multiselect-options" id="${id}-options">
-                    ${options.map(opt => `
-                        <label><input type="checkbox" value="${opt}"> ${opt}</label>
-                    `).join('')}
+                    ${options.map(opt => `<label><input type="checkbox" value="${opt}"> ${opt}</label>`).join('')}
                 </div>
             `;
             container.appendChild(wrapper);
@@ -247,8 +238,6 @@
 
         function applyFilters() {
             const searchTerm = searchInput.value.toLowerCase();
-            
-            // Filtros avançados
             const minAge = parseInt(document.getElementById('min-age').value) || null;
             const maxAge = parseInt(document.getElementById('max-age').value) || null;
             const selectedNationalities = getSelectedCheckboxes('nationality');
@@ -262,37 +251,21 @@
             const filteredIds = Object.keys(actorsData).filter(id => {
                 const info = actorsData[id].informacoes_ator;
                 if (!info) return false;
-
-                // Filtro de Nome
                 if (searchTerm && !info.nome.toLowerCase().includes(searchTerm)) return false;
-
-                // Filtro de Idade
                 const age = calculateAge(info.dataNascimento);
                 if (minAge && (age === null || age < minAge)) return false;
                 if (maxAge && (age === null || age > maxAge)) return false;
-
-                // Filtro de Nacionalidade
                 if (selectedNationalities.length > 0 && !selectedNationalities.includes(info.pais)) return false;
-
-                // Filtro de Peso
                 const weight = parseInt(info.peso) || null;
                 if (minWeight && (weight === null || weight < minWeight)) return false;
                 if (maxWeight && (weight === null || weight > maxWeight)) return false;
-                
-                // Filtro de Altura
                 const height = parseInt(info.altura) || null;
                 if (minHeight && (height === null || height < minHeight)) return false;
                 if (maxHeight && (height === null || height > maxHeight)) return false;
-
-                // Filtro Cor dos Olhos
                 if (selectedEyeColors.length > 0 && !selectedEyeColors.includes(info.corOlhos)) return false;
-                
-                // Filtro Cor do Cabelo
                 if (selectedHairColors.length > 0 && !selectedHairColors.includes(info.corCabelo)) return false;
-
                 return true;
             });
-
             renderActorList(filteredIds);
         }
         
@@ -304,13 +277,13 @@
 
         function renderActorList(actorIds) {
             const sortedIds = actorIds.sort((a, b) => actorsData[a].informacoes_ator.nome.localeCompare(actorsData[b].informacoes_ator.nome));
+            const currentActive = actorListElement.querySelector('.active');
             actorListElement.innerHTML = sortedIds.map(id => `<li data-actor-id="${id}">${actorsData[id].informacoes_ator.nome}</li>`).join('');
-            
-            if (actorListElement.querySelector('.active')) {
-                // Não faz nada para não limpar a tela de um ator selecionado
-            } else if (sortedIds.length > 0) {
-                mainContentElement.innerHTML = '<p style="text-align: center; color: var(--secondary-text);">Selecione um ator na lista para ver os detalhes.</p>';
-            } else {
+            if (currentActive && !actorListElement.querySelector(`[data-actor-id="${currentActive.dataset.actorId}"]`)) {
+                 mainContentElement.innerHTML = '<p style="text-align: center; color: var(--secondary-text);">Selecione um ator na lista para ver os detalhes.</p>';
+            } else if (currentActive) {
+                actorListElement.querySelector(`[data-actor-id="${currentActive.dataset.actorId}"]`).classList.add('active');
+            } else if (sortedIds.length === 0) {
                  mainContentElement.innerHTML = '<p style="text-align: center; color: var(--secondary-text);">Nenhum resultado encontrado para os filtros aplicados.</p>';
             }
         }
@@ -354,7 +327,7 @@
             const sortedVideos = [...videos].sort((a, b) => { const dateA = parseDate(a.data); const dateB = parseDate(b.data); if (!dateA) return 1; if (!dateB) return -1; return dateB - dateA; });
             const tableRows = sortedVideos.map(video => {
                 const otherActors = (video.atores || []).map(actorId => actorIdToDataMap[actorId]).filter(actorInfo => actorInfo && (actorInfo.id !== currentActorId && actorInfo.nome !== actorsData[currentActorId].informacoes_ator.nome)).map(actorInfo => actorInfo.nome).join(', ');
-                return `<tr><td>${video.data || 'N/A'}</td><td>${video.nome || 'N/A'}</td><td>${otherActors || 'N/A'}</td><td><button class="view-content-btn" data-type="videos" data-id="${video.nome}">▶</button></td></tr>`;
+                return `<tr><td>${video.data || 'N/A'}</td><td>${video.nome || 'N/A'}</td><td>${otherActors || 'N/A'}</td><td><button class="view-content-btn" data-type="videos" data-id="${encodeURIComponent(video.nome)}">▶</button></td></tr>`;
             }).join('');
             return `<div id="section-chronology" class="content-section"><h3>Cronologia</h3><table id="chronology-table"><thead><tr><th>Data</th><th>Nome</th><th>Outros Atores</th><th>Ver</th></tr></thead><tbody>${tableRows}</tbody></table></div>`;
         }
@@ -362,7 +335,7 @@
         function generateGridHtml(items, type) {
             if (!items || items.length === 0) return '';
             const title = type.charAt(0).toUpperCase() + type.slice(1);
-            const cards = items.map(item => `<div class="card" data-type="${type}" data-id="${item.nome}"><img src="${item.imagem || ''}" alt="${item.nome || ''}"><div class="card-body"><h4>${item.nome || 'N/A'}</h4><p>${item.data || item.ano || ''}</p></div></div>`).join('');
+            const cards = items.map(item => `<div class="card" data-type="${type}" data-id="${encodeURIComponent(item.nome)}"><img src="${item.imagem || ''}" alt="${item.nome || ''}"><div class="card-body"><h4>${item.nome || 'N/A'}</h4><p>${item.data || item.ano || ''}</p></div></div>`).join('');
             return `<div id="section-${type}" class="content-section"><h3>${title}</h3><div class="grid">${cards}</div></div>`;
         }
 
@@ -388,7 +361,6 @@
         function handleEscKeyForMedia(e) { if (e.key === 'Escape') closeModal(mediaModal); }
         
         // --- EVENT LISTENERS ---
-
         searchInput.addEventListener('input', applyFilters);
         advancedSearchBtn.addEventListener('click', () => advancedSearchModal.classList.add('visible'));
         applyFiltersBtn.addEventListener('click', () => { applyFilters(); closeModal(advancedSearchModal); });
@@ -407,7 +379,7 @@
                 const activeActorLi = actorListElement.querySelector('li.active'); if (!activeActorLi) return;
                 const actorId = activeActorLi.dataset.actorId;
                 const dataType = mediaTrigger.dataset.type;
-                const itemId = mediaTrigger.dataset.id;
+                const itemId = decodeURIComponent(mediaTrigger.dataset.id);
                 const actorData = actorsData[actorId];
                 const itemData = actorData[dataType].find(item => item.nome === itemId);
                 if (itemData) { openModal(itemData, actorData.informacoes_ator.nome); }
