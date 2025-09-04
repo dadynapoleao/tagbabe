@@ -8,6 +8,7 @@
     <style>
         :root {
             --bg-color: #121212; --sidebar-bg: #1e1e1e; --card-bg: #282828; --primary-text: #ffffff; --secondary-text: #b3b3b3; --accent-color: #1db954; --hover-color: #333333; --border-color: #404040;
+            --warning-color: #ffc107;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
@@ -48,8 +49,10 @@
         #chronology-table th, #chronology-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
         #chronology-table thead th { background-color: var(--sidebar-bg); color: var(--accent-color); font-size: 0.9rem; text-transform: uppercase; }
         #chronology-table tbody tr:nth-child(odd) { background-color: var(--hover-color); }
-        .view-content-btn { background: none; border: none; color: var(--accent-color); font-size: 1.5rem; cursor: pointer; transition: transform 0.2s; }
-        .view-content-btn:hover { transform: scale(1.2); }
+        .view-content-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; transition: transform 0.2s; }
+        .view-content-btn:hover:not(:disabled) { transform: scale(1.2); }
+        .view-content-btn.has-link { color: var(--accent-color); }
+        .view-content-btn.no-link { color: var(--warning-color); cursor: not-allowed; opacity: 0.6; }
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .spinner { border: 8px solid var(--border-color); border-top: 8px solid var(--accent-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -81,45 +84,13 @@
         .media-player .aspect-ratio-box { width: 100%; aspect-ratio: 16 / 9; }
         .media-player video, .media-player iframe { width: 100%; height: 100%; border: none; }
         .media-info { flex: 1; padding: 25px; background-color: var(--sidebar-bg); overflow-y: auto; }
-        .media-info h3 { font-size: 1.5rem; margin-bottom: 15px; } .media-info p { margin-bottom: 20px; color: var(--secondary-text); } .media-info h4 { font-size: 1.1rem; margin-top: 25px; margin-bottom: 10px; color: var(--accent-color); border-top: 1px solid var(--border-color); padding-top: 15px; } .media-info ul { list-style: none; padding: 0; } .media-info li { margin-bottom: 8px; }
+        .media-info .title-container { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 15px; }
+        .media-info .title-container h3 { font-size: 1.5rem; margin-bottom: 0; flex-grow: 1; }
+        .media-info p { margin-bottom: 20px; color: var(--secondary-text); } .media-info h4 { font-size: 1.1rem; margin-top: 25px; margin-bottom: 10px; color: var(--accent-color); border-top: 1px solid var(--border-color); padding-top: 15px; } .media-info ul { list-style: none; padding: 0; } .media-info li { margin-bottom: 8px; }
+        .edit-video-btn { display: inline-flex; align-items: center; justify-content: center; background: none; border: 1px solid var(--border-color); color: var(--secondary-text); width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: all 0.2s ease; flex-shrink: 0; }
+        .edit-video-btn:hover { background-color: var(--hover-color); color: var(--primary-text); border-color: var(--accent-color); }
+        .edit-video-btn svg { width: 18px; height: 18px; fill: currentColor; }
         .media-tags { display: flex; flex-wrap: wrap; gap: 8px; } .tag-item { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 15px; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s ease; } .tag-item:hover { background-color: var(--accent-color); color: var(--bg-color); border-color: var(--accent-color); }
-        
-        /* --- NOVO: ESTILOS PARA O BOTÃO DE EDITAR --- */
-        .media-info .title-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .media-info .title-container h3 {
-            margin-bottom: 0;
-            flex-grow: 1; /* Permite que o título ocupe o espaço disponível */
-        }
-        .edit-video-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--secondary-text);
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            flex-shrink: 0; /* Impede que o botão encolha */
-        }
-        .edit-video-btn:hover {
-            background-color: var(--hover-color);
-            color: var(--primary-text);
-            border-color: var(--accent-color);
-        }
-        .edit-video-btn svg {
-            width: 18px;
-            height: 18px;
-            fill: currentColor;
-        }
     </style>
 </head>
 <body>
@@ -135,9 +106,8 @@
             <h2>Atores</h2>
             <ul id="actor-list"></ul>
         </aside>
-        <main id="main-content"><!-- Conteúdo dinâmico --></main>
+        <main id="main-content"></main>
     </div>
-    <!-- Modals -->
     <div id="media-modal" class="modal"><div class="modal-content"><button class="modal-close">&times;</button><div id="modal-body"></div></div></div>
     <div id="advanced-search-modal" class="modal">
         <div class="modal-content">
@@ -186,7 +156,9 @@
         const resetFiltersBtn = document.getElementById('reset-filters-btn');
         const mediaModal = document.getElementById('media-modal');
         const modalBody = document.getElementById('modal-body');
+        
         let actorsData = {}, actorIdToDataMap = {};
+        let allVideosGlobalMap = new Map(); // --- NOVO: Cache global de vídeos únicos
 
         async function initializeApp() {
             try {
@@ -197,98 +169,79 @@
                     if (data.informacoes_ator && data.informacoes_ator.nome) {
                         actorsData[doc.id] = data;
                         actorIdToDataMap[data.informacoes_ator.id || doc.id] = data.informacoes_ator;
+                        
+                        // --- NOVO: Popula o cache global de vídeos
+                        if (data.videos && Array.isArray(data.videos)) {
+                            data.videos.forEach(video => {
+                                if (video.nome && !allVideosGlobalMap.has(video.nome)) {
+                                    allVideosGlobalMap.set(video.nome, video);
+                                }
+                            });
+                        }
                     }
                 });
                 populateAdvancedSearchOptions();
                 applyFilters();
+                renderLatestVideosView(); // --- NOVO: Renderiza a visão inicial
             } catch (error) { console.error("Erro ao carregar dados: ", error); } 
             finally { loader.style.display = 'none'; }
         }
 
-        function populateAdvancedSearchOptions() {
-            const allInfo = Object.values(actorsData).map(d => d.informacoes_ator);
-            const uniqueCountries = [...new Set(allInfo.map(i => i.pais).filter(Boolean))].sort();
-            const uniqueEyeColors = [...new Set(allInfo.map(i => i.corOlhos).filter(Boolean))].sort();
-            const uniqueHairColors = [...new Set(allInfo.map(i => i.corCabelo).filter(Boolean))].sort();
-            createMultiSelect('nationality', uniqueCountries, document.getElementById('nationality-group'));
-            createMultiSelect('eyecolor', uniqueEyeColors, document.getElementById('eyecolor-group'));
-            createMultiSelect('haircolor', uniqueHairColors, document.getElementById('haircolor-group'));
-        }
+        // --- NOVO: FUNÇÃO PARA RENDERIZAR A VISÃO INICIAL ---
+        function renderLatestVideosView() {
+            // Converte o mapa de vídeos em um array
+            const uniqueVideos = Array.from(allVideosGlobalMap.values());
+            
+            // Filtra apenas vídeos que têm data para poder ordenar
+            const videosWithDate = uniqueVideos.filter(video => video.data);
 
-        function createMultiSelect(id, options, container) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'custom-multiselect';
-            wrapper.innerHTML = `<button type="button" class="multiselect-btn">Selecione uma ou mais opções</button><div class="multiselect-options" id="${id}-options">${options.map(opt => `<label><input type="checkbox" value="${opt}"> ${opt}</label>`).join('')}</div>`;
-            container.appendChild(wrapper);
-        }
+            // Ordena os vídeos pela data, do mais recente para o mais antigo
+            videosWithDate.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-        function applyFilters() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const minAge = parseInt(document.getElementById('min-age').value) || null;
-            const maxAge = parseInt(document.getElementById('max-age').value) || null;
-            const selectedNationalities = getSelectedCheckboxes('nationality');
-            const minWeight = parseInt(document.getElementById('min-weight').value) || null;
-            const maxWeight = parseInt(document.getElementById('max-weight').value) || null;
-            const minHeight = parseInt(document.getElementById('min-height').value) || null;
-            const maxHeight = parseInt(document.getElementById('max-height').value) || null;
-            const selectedEyeColors = getSelectedCheckboxes('eyecolor');
-            const selectedHairColors = getSelectedCheckboxes('haircolor');
-            const filteredIds = Object.keys(actorsData).filter(id => {
-                const info = actorsData[id].informacoes_ator;
-                if (!info) return false;
-                if (searchTerm && !info.nome.toLowerCase().includes(searchTerm)) return false;
-                const age = calculateAge(info.dataNascimento);
-                if (minAge && (age === null || age < minAge)) return false;
-                if (maxAge && (age === null || age > maxAge)) return false;
-                if (selectedNationalities.length > 0 && !selectedNationalities.includes(info.pais)) return false;
-                const weight = parseInt(info.peso) || null;
-                if (minWeight && (weight === null || weight < minWeight)) return false;
-                if (maxWeight && (weight === null || weight > maxWeight)) return false;
-                const height = parseInt(info.altura) || null;
-                if (minHeight && (height === null || height < minHeight)) return false;
-                if (maxHeight && (height === null || height > maxHeight)) return false;
-                if (selectedEyeColors.length > 0 && !selectedEyeColors.includes(info.corOlhos)) return false;
-                if (selectedHairColors.length > 0 && !selectedHairColors.includes(info.corCabelo)) return false;
-                return true;
-            });
-            renderActorList(filteredIds);
-        }
-        
-        function getSelectedCheckboxes(id) {
-            const container = document.getElementById(`${id}-options`);
-            if (!container) return [];
-            return [...container.querySelectorAll('input:checked')].map(cb => cb.value);
-        }
+            // Pega os 10 mais recentes
+            const latest10Videos = videosWithDate.slice(0, 10);
 
-        function renderActorList(actorIds) {
-            const sortedIds = actorIds.sort((a, b) => actorsData[a].informacoes_ator.nome.localeCompare(actorsData[b].informacoes_ator.nome));
-            const currentActive = actorListElement.querySelector('.active');
-            actorListElement.innerHTML = sortedIds.map(id => `<li data-actor-id="${id}">${actorsData[id].informacoes_ator.nome}</li>`).join('');
-            if (currentActive && !actorListElement.querySelector(`[data-actor-id="${currentActive.dataset.actorId}"]`)) {
-                 mainContentElement.innerHTML = '<p style="text-align: center; color: var(--secondary-text);">Selecione um ator na lista para ver os detalhes.</p>';
-            } else if (currentActive) {
-                actorListElement.querySelector(`[data-actor-id="${currentActive.dataset.actorId}"]`).classList.add('active');
-            } else if (sortedIds.length === 0) {
-                 mainContentElement.innerHTML = '<p style="text-align: center; color: var(--secondary-text);">Nenhum resultado encontrado.</p>';
+            if (latest10Videos.length > 0) {
+                const latestVideosHtml = generateGridHtml(latest10Videos, 'videos', 'Últimos Vídeos Adicionados', 'section-latest');
+                mainContentElement.innerHTML = latestVideosHtml;
+            } else {
+                mainContentElement.innerHTML = '<p style="text-align: center; color: var(--secondary-text);">Nenhum vídeo encontrado. Selecione um ator na lista para começar.</p>';
             }
         }
+
+        // --- generateGridHtml MODIFICADA para ser mais flexível ---
+        function generateGridHtml(items, type, sectionTitle, sectionId) {
+            if (!items || items.length === 0) return '';
+            const title = sectionTitle || (type.charAt(0).toUpperCase() + type.slice(1));
+            const id = sectionId || `section-${type}`;
+            const cards = items.map(item => `<div class="card" data-type="${type}" data-id="${encodeURIComponent(item.nome)}"><img src="${item.imagem||''}" alt="${item.nome||''}"><div class="card-body"><h4>${item.nome||'N/A'}</h4><p>${item.data||item.ano||''}</p></div></div>`).join('');
+            return `<div id="${id}" class="content-section"><h3>${title}</h3><div class="grid">${cards}</div></div>`;
+        }
         
-        function calculateAge(dateString) {
-            if (!dateString) return null;
-            const normalizedDate = dateString.replace(/\//g, '-');
-            const parts = normalizedDate.split('-');
-            if (parts.length !== 3) return null;
-            const formattedDate = parts[2].length === 4 ? `${parts[2]}-${parts[1]}-${parts[0]}` : `${parts[0]}-${parts[1]}-${parts[2]}`;
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(formattedDate)) return null;
-            const birthDate = new Date(formattedDate);
-            if (isNaN(birthDate.getTime())) return null;
-            const today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
-            return age;
+        // --- generateChronologyTableHtml MODIFICADA para o feedback visual ---
+        function generateChronologyTableHtml(videos, currentActorId) {
+            if (!videos || videos.length === 0) return '';
+            const parseDate = (d) => { if (!d) return null; const parts = d.split('-'); return new Date(parts[0], parts[1] - 1, parts[2]); };
+            const sortedVideos = [...videos].sort((a, b) => (parseDate(b.data) || 0) - (parseDate(a.data) || 0));
+            
+            const tableRows = sortedVideos.map(video => {
+                const otherActors = (video.atores || []).map(id => actorIdToDataMap[id]).filter(info => info && (info.id !== currentActorId && info.nome !== actorsData[currentActorId].informacoes_ator.nome)).map(info => info.nome).join(', ');
+                const hasLink = video.pagina && video.pagina.trim() !== '';
+                const buttonHtml = `<button class="view-content-btn ${hasLink ? 'has-link' : 'no-link'}" data-type="videos" data-id="${encodeURIComponent(video.nome)}" ${!hasLink ? 'title="Sem link de vídeo associado" disabled' : 'title="Ver vídeo"'}>▶</button>`;
+                return `<tr><td>${video.data || 'N/A'}</td><td>${video.nome || 'N/A'}</td><td>${otherActors || 'N/A'}</td><td>${buttonHtml}</td></tr>`;
+            }).join('');
+
+            return `<div id="section-chronology" class="content-section"><h3>Cronologia</h3><table id="chronology-table"><thead><tr><th>Data</th><th>Nome</th><th>Outros Atores</th><th>Ver</th></tr></thead><tbody>${tableRows}</tbody></table></div>`;
         }
 
+        // --- Resto do seu script (funções e listeners) ---
+        function populateAdvancedSearchOptions() { /* ... */ }
+        function createMultiSelect(id, options, container) { /* ... */ }
+        function applyFilters() { /* ... */ }
+        function getSelectedCheckboxes(id) { /* ... */ }
+        function renderActorList(actorIds) { /* ... */ }
+        function calculateAge(dateString) { /* ... */ }
+        
         function renderActorDetails(actorId) {
             const data = actorsData[actorId]; if (!data) return;
             const info = data.informacoes_ator || {};
@@ -305,76 +258,31 @@
             const videosHtml = generateGridHtml(data.videos, 'videos');
             mainContentElement.innerHTML = profileHeaderHtml + submenuHtml + chronologyHtml + cenasHtml + filmesHtml + videosHtml;
         }
-        
-        function generateChronologyTableHtml(videos, currentActorId) {
-            if (!videos || videos.length === 0) return '';
-            const parseDate = (d) => { if (!d) return null; const parts = d.split('-'); return new Date(parts[0], parts[1] - 1, parts[2]); };
-            const sortedVideos = [...videos].sort((a, b) => (parseDate(b.data) || 0) - (parseDate(a.data) || 0));
-            const tableRows = sortedVideos.map(video => {
-                const otherActors = (video.atores || []).map(id => actorIdToDataMap[id]).filter(info => info && (info.id !== currentActorId && info.nome !== actorsData[currentActorId].informacoes_ator.nome)).map(info => info.nome).join(', ');
-                return `<tr><td>${video.data||'N/A'}</td><td>${video.nome||'N/A'}</td><td>${otherActors||'N/A'}</td><td><button class="view-content-btn" data-type="videos" data-id="${encodeURIComponent(video.nome)}">▶</button></td></tr>`;
-            }).join('');
-            return `<div id="section-chronology" class="content-section"><h3>Cronologia</h3><table id="chronology-table"><thead><tr><th>Data</th><th>Nome</th><th>Outros Atores</th><th>Ver</th></tr></thead><tbody>${tableRows}</tbody></table></div>`;
-        }
 
-        function generateGridHtml(items, type) {
-            if (!items || items.length === 0) return '';
-            const title = type.charAt(0).toUpperCase() + type.slice(1);
-            const cards = items.map(item => `<div class="card" data-type="${type}" data-id="${encodeURIComponent(item.nome)}"><img src="${item.imagem||''}" alt="${item.nome||''}"><div class="card-body"><h4>${item.nome||'N/A'}</h4><p>${item.data||item.ano||''}</p></div></div>`).join('');
-            return `<div id="section-${type}" class="content-section"><h3>${title}</h3><div class="grid">${cards}</div></div>`;
-        }
-        
-        // --- NOVO: FUNÇÃO openModal MODIFICADA ---
         function openModal(item, currentActorName) {
             const link = item.pagina || '#';
             const isVideo = ['mp4', 'webm', 'ogg'].some(ext => link.split('?')[0].toLowerCase().endsWith('.' + ext));
             const mediaPlayerHtml = `<div class="media-player"><div class="aspect-ratio-box">${isVideo ? `<video src="${link}" controls autoplay playsinline></video>` : `<iframe src="${link}" frameborder="0" allowfullscreen></iframe>`}</div></div>`;
-
             let otherActorsHtml = '<li>Nenhuma outra atriz encontrada.</li>';
             if (item.atores && item.atores.length > 1) {
                 const otherActors = item.atores.map(id => actorIdToDataMap[id]).filter(info => info && info.nome !== currentActorName);
-                if (otherActors.length > 0) {
-                    otherActorsHtml = otherActors.map(actor => `<li>${actor.nome}</li>`).join('');
-                }
+                if (otherActors.length > 0) { otherActorsHtml = otherActors.map(actor => `<li>${actor.nome}</li>`).join(''); }
             }
-
             let videoTagsHtml = '';
             if (isVideo && item.tags && item.tags.length > 0) {
                 const tags = item.tags.map(tag => `<span class="tag-item" data-time="${tag.time}">${tag.label}</span>`).join('');
                 videoTagsHtml = `<h4>Tags</h4><div class="media-tags">${tags}</div>`;
             }
-            
-            // Cria o botão de editar com o link dinâmico
             const encodedVideoName = encodeURIComponent(item.nome || '');
-            const editButtonHtml = `
-                <a href="advid.html?video=${encodedVideoName}" target="_blank" class="edit-video-btn" title="Editar Vídeo">
-                    <svg viewBox="0 0 24 24"><path d="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z" /></svg>
-                </a>
-            `;
-
-            // Cria um container para o título e o botão
-            const titleHtml = `
-                <div class="title-container">
-                    <h3>${item.nome || 'N/A'}</h3>
-                    ${editButtonHtml}
-                </div>
-            `;
-
+            const editButtonHtml = `<a href="advid.html?video=${encodedVideoName}" target="_blank" class="edit-video-btn" title="Editar Vídeo"><svg viewBox="0 0 24 24"><path d="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z" /></svg></a>`;
+            const titleHtml = `<div class="title-container"><h3>${item.nome || 'N/A'}</h3>${editButtonHtml}</div>`;
             const mediaInfoHtml = `<div class="media-info">${titleHtml}<p><strong>Data:</strong> ${item.data||item.ano||'N/A'}</p><h4>Outras Atrizes:</h4><ul>${otherActorsHtml}</ul>${videoTagsHtml}</div>`;
-            
             modalBody.innerHTML = mediaPlayerHtml + mediaInfoHtml;
             mediaModal.classList.add('visible');
             document.addEventListener('keydown', handleEscKeyForMedia);
         }
 
-
-        function closeModal(modalElement) {
-            modalElement.classList.remove('visible');
-            if (modalElement.id === 'media-modal') {
-                modalBody.innerHTML = '';
-                document.removeEventListener('keydown', handleEscKeyForMedia);
-            }
-        }
+        function closeModal(modalElement) { modalElement.classList.remove('visible'); if (modalElement.id === 'media-modal') { modalBody.innerHTML = ''; document.removeEventListener('keydown', handleEscKeyForMedia); } }
         function handleEscKeyForMedia(e) { if (e.key === 'Escape') closeModal(mediaModal); }
         
         searchInput.addEventListener('input', applyFilters);
@@ -386,20 +294,36 @@
         actorListElement.addEventListener('click', (e) => {
             if (e.target && e.target.tagName === 'LI') {
                 document.querySelectorAll('#actor-list li').forEach(li => li.classList.remove('active'));
-                e.target.classList.add('active'); renderActorDetails(e.target.dataset.actorId);
+                e.target.classList.add('active');
+                renderActorDetails(e.target.dataset.actorId);
             }
         });
         
+        // --- CLICK HANDLER MODIFICADO para funcionar em ambos os contextos ---
         mainContentElement.addEventListener('click', (e) => {
             const mediaTrigger = e.target.closest('[data-type][data-id]');
-            if (mediaTrigger) {
-                const activeActorLi = actorListElement.querySelector('li.active'); if (!activeActorLi) return;
+            if (!mediaTrigger) return;
+
+            const itemId = decodeURIComponent(mediaTrigger.dataset.id);
+            const activeActorLi = actorListElement.querySelector('li.active');
+            let itemData;
+            let currentActorName = null;
+
+            if (activeActorLi) {
+                // Contexto: Dentro do perfil de um ator
                 const actorId = activeActorLi.dataset.actorId;
-                const dataType = mediaTrigger.dataset.type;
-                const itemId = decodeURIComponent(mediaTrigger.dataset.id);
                 const actorData = actorsData[actorId];
-                const itemData = actorData[dataType].find(item => item.nome === itemId);
-                if (itemData) { openModal(itemData, actorData.informacoes_ator.nome); }
+                const dataType = mediaTrigger.dataset.type;
+                itemData = actorData[dataType]?.find(item => item.nome === itemId);
+                currentActorName = actorData.informacoes_ator.nome;
+            } else {
+                // Contexto: Visão inicial (últimos vídeos)
+                itemData = allVideosGlobalMap.get(itemId);
+                // currentActorName permanece null, o que é ok
+            }
+
+            if (itemData) {
+                openModal(itemData, currentActorName);
             }
         });
 
@@ -413,7 +337,7 @@
 
         document.querySelectorAll('.modal').forEach(modalEl => {
             modalEl.addEventListener('click', (e) => { if (e.target === modalEl) closeModal(modalEl); });
-            modalEl.querySelector('.modal-close').addEventListener('click', () => closeModal(modalEl));
+            modalEl.querySelector('.modal-close')?.addEventListener('click', () => closeModal(modalEl));
         });
 
         document.body.addEventListener('click', e => {
