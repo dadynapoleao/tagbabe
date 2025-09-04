@@ -10,15 +10,22 @@
             --bg-color: #121212; --sidebar-bg: #1e1e1e; --card-bg: #282828; --primary-text: #ffffff; --secondary-text: #b3b3b3; --accent-color: #1db954; --hover-color: #333333; --border-color: #404040;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        /* Adicionado para scroll suave */
         html { scroll-behavior: smooth; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--primary-text); display: flex; height: 100vh; overflow: hidden; }
         .app-container { display: flex; width: 100%; height: 100%; }
         #sidebar { width: 280px; background-color: var(--sidebar-bg); padding: 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); flex-shrink: 0; }
+        
+        /* --- ESTILOS PARA A PESQUISA --- */
+        #search-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        #search-input { flex-grow: 1; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--primary-text); font-size: 0.9rem; }
+        #advanced-search-btn { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; border: none; background-color: var(--card-bg); color: var(--accent-color); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
+        #advanced-search-btn:hover { background-color: var(--hover-color); }
+        #advanced-search-btn svg { width: 20px; height: 20px; fill: currentColor; }
+        
         #sidebar h2 { font-size: 1.5rem; margin-bottom: 20px; color: var(--accent-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; }
         #actor-list { list-style: none; overflow-y: auto; flex-grow: 1; }
         #actor-list::-webkit-scrollbar { width: 8px; } #actor-list::-webkit-scrollbar-track { background: var(--sidebar-bg); } #actor-list::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-        #actor-list li { padding: 12px 15px; cursor: pointer; border-radius: 6px; font-weight: 500; transition: background-color 0.2s ease; }
+        #actor-list li { padding: 12px 15px; cursor: pointer; border-radius: 6px; font-weight: 500; transition: background-color 0.2s ease; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #actor-list li:hover { background-color: var(--hover-color); }
         #actor-list li.active { background-color: var(--accent-color); color: var(--bg-color); font-weight: 700; }
         #main-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
@@ -27,35 +34,53 @@
         .profile-header img { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent-color); }
         .profile-info h1 { font-size: 2.5rem; }
         .actor-meta-info { font-size: 1rem; font-style: italic; color: var(--secondary-text); margin-top: 8px; }
-        
-        /* --- ESTILOS PARA O NOVO SUBMENU --- */
         #actor-submenu { display: flex; gap: 15px; margin-bottom: 40px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
         #actor-submenu a { text-decoration: none; color: var(--secondary-text); font-weight: bold; padding: 8px 16px; border-radius: 20px; transition: background-color 0.2s, color 0.2s; }
         #actor-submenu a:hover { background-color: var(--hover-color); color: var(--primary-text); }
-
         .content-section h3 { font-size: 1.8rem; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
         .card { background-color: var(--card-bg); border-radius: 8px; overflow: hidden; transition: transform 0.2s ease; cursor: pointer; }
         .card:hover { transform: translateY(-5px); }
         .card img { width: 100%; height: 300px; object-fit: cover; display: block; }
         .card-body { padding: 15px; } .card-body h4 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .card-body p { font-size: 0.85rem; color: var(--secondary-text); }
-
-        /* --- ESTILOS PARA A TABELA DE CRONOLOGIA --- */
         #chronology-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         #chronology-table th, #chronology-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
         #chronology-table thead th { background-color: var(--sidebar-bg); color: var(--accent-color); font-size: 0.9rem; text-transform: uppercase; }
         #chronology-table tbody tr:nth-child(odd) { background-color: var(--hover-color); }
         .view-content-btn { background: none; border: none; color: var(--accent-color); font-size: 1.5rem; cursor: pointer; transition: transform 0.2s; }
         .view-content-btn:hover { transform: scale(1.2); }
-
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .spinner { border: 8px solid var(--border-color); border-top: 8px solid var(--accent-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; }
         .modal.visible { opacity: 1; visibility: visible; }
-        .modal-content { position: relative; background-color: var(--card-bg); border-radius: 8px; width: 95%; max-width: 1200px; max-height: 90vh; display: flex; overflow: hidden; }
+        .modal-content { position: relative; background-color: var(--card-bg); border-radius: 8px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
         .modal-close { position: absolute; top: 5px; right: 5px; background-color: var(--primary-text); color: var(--bg-color); border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center; z-index: 10; }
         #modal-body { display: flex; width: 100%; height: 100%; }
+        
+        /* --- ESTILOS DO MODAL DE PESQUISA AVANÇADA --- */
+        #advanced-search-modal .modal-content { max-width: 600px; padding: 25px; }
+        #advanced-search-modal h3 { font-size: 1.8rem; margin-bottom: 20px; color: var(--accent-color); }
+        #advanced-search-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 8px; font-size: 0.9rem; color: var(--secondary-text); }
+        .form-group input { padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--primary-text); }
+        .form-group.full-width { grid-column: 1 / -1; }
+        .form-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .form-actions button { padding: 10px 20px; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        #reset-filters-btn { background-color: var(--hover-color); color: var(--primary-text); }
+        #apply-filters-btn { background-color: var(--accent-color); color: var(--bg-color); }
+        /* Custom dropdown styles */
+        .custom-multiselect { position: relative; }
+        .multiselect-btn { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--primary-text); text-align: left; cursor: pointer; }
+        .multiselect-options { display: none; position: absolute; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 4px; max-height: 150px; overflow-y: auto; z-index: 10; width: 100%; }
+        .multiselect-options.visible { display: block; }
+        .multiselect-options label { display: block; padding: 8px 12px; cursor: pointer; }
+        .multiselect-options label:hover { background-color: var(--hover-color); }
+        .multiselect-options input { margin-right: 8px; }
+
+        /* Estilos do Modal de Mídia */
+        #media-modal .modal-content { max-width: 1200px; }
         .media-player { flex: 3; background-color: #000; display: flex; align-items: center; justify-content: center; }
         .media-player .aspect-ratio-box { width: 100%; aspect-ratio: 16 / 9; }
         .media-player video, .media-player iframe { width: 100%; height: 100%; border: none; }
@@ -67,8 +92,15 @@
 <body>
 
     <div id="loader"><div class="spinner"></div></div>
+    
     <div class="app-container">
         <aside id="sidebar">
+            <div id="search-container">
+                <input type="text" id="search-input" placeholder="Pesquisar por nome...">
+                <button id="advanced-search-btn" title="Pesquisa Avançada">
+                    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM12 10h-2v2H9v-2H7V9h2V7h1v2h2v1z"></path></svg>
+                </button>
+            </div>
             <h2>Atores</h2>
             <ul id="actor-list"></ul>
         </aside>
@@ -76,10 +108,65 @@
             <!-- Conteúdo dinâmico -->
         </main>
     </div>
+
+    <!-- Modal de Mídia -->
     <div id="media-modal" class="modal">
         <div class="modal-content">
-            <button id="modal-close-btn" class="modal-close">&times;</button>
+            <button class="modal-close">&times;</button>
             <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Pesquisa Avançada -->
+    <div id="advanced-search-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <h3>Pesquisa Avançada</h3>
+            <form id="advanced-search-form">
+                <div class="form-group">
+                    <label for="min-age">Idade (mín)</label>
+                    <input type="number" id="min-age" min="18">
+                </div>
+                <div class="form-group">
+                    <label for="max-age">Idade (máx)</label>
+                    <input type="number" id="max-age" min="18">
+                </div>
+
+                <div class="form-group full-width" id="nationality-group">
+                    <label>Nacionalidade</label>
+                    <!-- Dropdown customizado será inserido aqui -->
+                </div>
+
+                <div class="form-group">
+                    <label for="min-weight">Peso (kg - mín)</label>
+                    <input type="number" id="min-weight">
+                </div>
+                <div class="form-group">
+                    <label for="max-weight">Peso (kg - máx)</label>
+                    <input type="number" id="max-weight">
+                </div>
+
+                <div class="form-group">
+                    <label for="min-height">Altura (cm - mín)</label>
+                    <input type="number" id="min-height">
+                </div>
+                <div class="form-group">
+                    <label for="max-height">Altura (cm - máx)</label>
+                    <input type="number" id="max-height">
+                </div>
+
+                <div class="form-group full-width" id="eyecolor-group">
+                    <label>Cor dos Olhos</label>
+                </div>
+                <div class="form-group full-width" id="haircolor-group">
+                    <label>Cor do Cabelo</label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="reset-filters-btn">Limpar</button>
+                    <button type="button" id="apply-filters-btn">Pesquisar</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -100,9 +187,19 @@
         const loader = document.getElementById('loader');
         const actorListElement = document.getElementById('actor-list');
         const mainContentElement = document.getElementById('main-content');
-        const modal = document.getElementById('media-modal');
+        
+        // Elementos de pesquisa
+        const searchInput = document.getElementById('search-input');
+        const advancedSearchBtn = document.getElementById('advanced-search-btn');
+        const advancedSearchModal = document.getElementById('advanced-search-modal');
+        const advancedSearchForm = document.getElementById('advanced-search-form');
+        const applyFiltersBtn = document.getElementById('apply-filters-btn');
+        const resetFiltersBtn = document.getElementById('reset-filters-btn');
+        
+        // Elementos do modal de mídia
+        const mediaModal = document.getElementById('media-modal');
         const modalBody = document.getElementById('modal-body');
-        const closeModalBtn = document.getElementById('modal-close-btn');
+        
         let actorsData = {}, actorIdToDataMap = {};
 
         async function initializeApp() {
@@ -111,26 +208,122 @@
                 const snapshot = await db.collection('all').get();
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    actorsData[doc.id] = data;
-                    if (data.informacoes_ator && data.informacoes_ator.id) {
-                        actorIdToDataMap[data.informacoes_ator.id] = data.informacoes_ator;
-                    } else { actorIdToDataMap[doc.id] = data.informacoes_ator; }
+                    if (data.informacoes_ator && data.informacoes_ator.nome) {
+                        actorsData[doc.id] = data;
+                        actorIdToDataMap[data.informacoes_ator.id || doc.id] = data.informacoes_ator;
+                    }
                 });
-                renderActorList(Object.keys(actorsData));
+                populateAdvancedSearchOptions();
+                applyFilters(); // Renderiza a lista inicial
             } catch (error) { console.error("Erro ao carregar dados: ", error); } 
             finally { loader.style.display = 'none'; }
         }
 
+        function populateAdvancedSearchOptions() {
+            const allInfo = Object.values(actorsData).map(d => d.informacoes_ator);
+            const uniqueCountries = [...new Set(allInfo.map(i => i.pais).filter(Boolean))].sort();
+            const uniqueEyeColors = [...new Set(allInfo.map(i => i.corOlhos).filter(Boolean))].sort();
+            const uniqueHairColors = [...new Set(allInfo.map(i => i.corCabelo).filter(Boolean))].sort();
+
+            createMultiSelect('nationality', uniqueCountries, document.getElementById('nationality-group'));
+            createMultiSelect('eyecolor', uniqueEyeColors, document.getElementById('eyecolor-group'));
+            createMultiSelect('haircolor', uniqueHairColors, document.getElementById('haircolor-group'));
+        }
+
+        function createMultiSelect(id, options, container) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'custom-multiselect';
+            wrapper.innerHTML = `
+                <button type="button" class="multiselect-btn">Selecione uma ou mais opções</button>
+                <div class="multiselect-options" id="${id}-options">
+                    ${options.map(opt => `
+                        <label><input type="checkbox" value="${opt}"> ${opt}</label>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(wrapper);
+        }
+
+        function applyFilters() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            // Filtros avançados
+            const minAge = parseInt(document.getElementById('min-age').value) || null;
+            const maxAge = parseInt(document.getElementById('max-age').value) || null;
+            const selectedNationalities = getSelectedCheckboxes('nationality');
+            const minWeight = parseInt(document.getElementById('min-weight').value) || null;
+            const maxWeight = parseInt(document.getElementById('max-weight').value) || null;
+            const minHeight = parseInt(document.getElementById('min-height').value) || null;
+            const maxHeight = parseInt(document.getElementById('max-height').value) || null;
+            const selectedEyeColors = getSelectedCheckboxes('eyecolor');
+            const selectedHairColors = getSelectedCheckboxes('haircolor');
+
+            const filteredIds = Object.keys(actorsData).filter(id => {
+                const info = actorsData[id].informacoes_ator;
+                if (!info) return false;
+
+                // Filtro de Nome
+                if (searchTerm && !info.nome.toLowerCase().includes(searchTerm)) return false;
+
+                // Filtro de Idade
+                const age = calculateAge(info.dataNascimento);
+                if (minAge && (age === null || age < minAge)) return false;
+                if (maxAge && (age === null || age > maxAge)) return false;
+
+                // Filtro de Nacionalidade
+                if (selectedNationalities.length > 0 && !selectedNationalities.includes(info.pais)) return false;
+
+                // Filtro de Peso
+                const weight = parseInt(info.peso) || null;
+                if (minWeight && (weight === null || weight < minWeight)) return false;
+                if (maxWeight && (weight === null || weight > maxWeight)) return false;
+                
+                // Filtro de Altura
+                const height = parseInt(info.altura) || null;
+                if (minHeight && (height === null || height < minHeight)) return false;
+                if (maxHeight && (height === null || height > maxHeight)) return false;
+
+                // Filtro Cor dos Olhos
+                if (selectedEyeColors.length > 0 && !selectedEyeColors.includes(info.corOlhos)) return false;
+                
+                // Filtro Cor do Cabelo
+                if (selectedHairColors.length > 0 && !selectedHairColors.includes(info.corCabelo)) return false;
+
+                return true;
+            });
+
+            renderActorList(filteredIds);
+        }
+        
+        function getSelectedCheckboxes(id) {
+            const container = document.getElementById(`${id}-options`);
+            if (!container) return [];
+            return [...container.querySelectorAll('input:checked')].map(cb => cb.value);
+        }
+
         function renderActorList(actorIds) {
-            const sortedIds = actorIds.sort((a, b) => a.localeCompare(b));
-            actorListElement.innerHTML = sortedIds.map(id => `<li data-actor-id="${id}">${actorsData[id].informacoes_ator.nome || id}</li>`).join('');
+            const sortedIds = actorIds.sort((a, b) => actorsData[a].informacoes_ator.nome.localeCompare(actorsData[b].informacoes_ator.nome));
+            actorListElement.innerHTML = sortedIds.map(id => `<li data-actor-id="${id}">${actorsData[id].informacoes_ator.nome}</li>`).join('');
+            // Se houver uma lista, limpa o conteúdo principal
+            if (sortedIds.length > 0) {
+                mainContentElement.innerHTML = '<p style="text-align: center; color: var(--secondary-text);">Selecione um ator na lista para ver os detalhes.</p>';
+            } else {
+                 mainContentElement.innerHTML = '<p style="text-align: center; color: var(--secondary-text);">Nenhum resultado encontrado para os filtros aplicados.</p>';
+            }
         }
         
         function calculateAge(dateString) {
             if (!dateString) return null;
             const normalizedDate = dateString.replace(/\//g, '-');
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) return null;
-            const birthDate = new Date(normalizedDate);
+            const parts = normalizedDate.split('-');
+            if (parts.length !== 3) return null;
+            // Garantir que a data está no formato YYYY-MM-DD
+            const formattedDate = parts[2].length === 4 ? `${parts[2]}-${parts[1]}-${parts[0]}` : `${parts[0]}-${parts[1]}-${parts[2]}`;
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(formattedDate)) return null;
+            
+            const birthDate = new Date(formattedDate);
+            if (isNaN(birthDate.getTime())) return null;
+
             const today = new Date();
             let age = today.getFullYear() - birthDate.getFullYear();
             const m = today.getMonth() - birthDate.getMonth();
@@ -138,147 +331,76 @@
             return age;
         }
 
-        // --- FUNÇÃO renderActorDetails TOTALMENTE REFEITA ---
         function renderActorDetails(actorId) {
             const data = actorsData[actorId]; if (!data) return;
             const info = data.informacoes_ator || {};
-
             const metaInfo = [];
             const age = calculateAge(info.dataNascimento);
-            if (age !== null) metaInfo.push(`${age}y`);
+            if (age !== null) metaInfo.push(`${age} anos`);
             if (info.pais) metaInfo.push(info.pais);
             const metaHtml = metaInfo.length > 0 ? `<p class="actor-meta-info">${metaInfo.join(' &bull; ')}</p>` : '';
-            
-            const profileHeaderHtml = `
-                <div class="profile-header">
-                    <img src="${info.foto || ''}" alt="Foto de ${info.nome || ''}">
-                    <div class="profile-info"><h1>${info.nome || 'N/A'}</h1>${metaHtml}</div>
-                </div>`;
-
-            const submenuHtml = `
-                <nav id="actor-submenu">
-                    <a href="#section-chronology">Cronologia</a>
-                    <a href="#section-cenas">Cenas</a>
-                    <a href="#section-filmes">Filmes</a>
-                    <a href="#section-videos">Vídeos</a>
-                </nav>`;
-            
-            // Gerar HTML para cada secção
+            const profileHeaderHtml = `<div class="profile-header"><img src="${info.foto || ''}" alt="Foto de ${info.nome || ''}"><div class="profile-info"><h1>${info.nome || 'N/A'}</h1>${metaHtml}</div></div>`;
+            const submenuHtml = `<nav id="actor-submenu"><a href="#section-chronology">Cronologia</a><a href="#section-cenas">Cenas</a><a href="#section-filmes">Filmes</a><a href="#section-videos">Vídeos</a></nav>`;
             const chronologyHtml = generateChronologyTableHtml(data.videos, info.id || actorId);
             const cenasHtml = generateGridHtml(data.cenas, 'cenas');
             const filmesHtml = generateGridHtml(data.filmes, 'filmes');
             const videosHtml = generateGridHtml(data.videos, 'videos');
-
             mainContentElement.innerHTML = profileHeaderHtml + submenuHtml + chronologyHtml + cenasHtml + filmesHtml + videosHtml;
         }
         
-        // --- NOVA FUNÇÃO PARA GERAR A TABELA DE CRONOLOGIA ---
         function generateChronologyTableHtml(videos, currentActorId) {
             if (!videos || videos.length === 0) return '';
-            
-            // Função para converter data em objeto Date, independentemente do formato
-            const parseDate = (dateString) => {
-                if (!dateString) return null;
-                return new Date(dateString.replace(/\//g, '-'));
-            };
-
-            // Ordenar vídeos: mais recentes primeiro
-            const sortedVideos = [...videos].sort((a, b) => {
-                const dateA = parseDate(a.data);
-                const dateB = parseDate(b.data);
-                if (!dateA) return 1;
-                if (!dateB) return -1;
-                return dateB - dateA; // Descendente
-            });
-
+            const parseDate = (dateString) => { if (!dateString) return null; return new Date(dateString.replace(/\//g, '-')); };
+            const sortedVideos = [...videos].sort((a, b) => { const dateA = parseDate(a.data); const dateB = parseDate(b.data); if (!dateA) return 1; if (!dateB) return -1; return dateB - dateA; });
             const tableRows = sortedVideos.map(video => {
-                const otherActors = (video.atores || [])
-                    .map(actorId => actorIdToDataMap[actorId]) // Mapeia ID para objeto de ator
-                    .filter(actorInfo => actorInfo && (actorInfo.id !== currentActorId && actorInfo.nome !== actorsData[currentActorId].informacoes_ator.nome)) // Filtra atores válidos e o ator atual
-                    .map(actorInfo => actorInfo.nome) // Pega o nome
-                    .join(', ');
-
-                return `
-                    <tr>
-                        <td>${video.data || 'N/A'}</td>
-                        <td>${video.nome || 'N/A'}</td>
-                        <td>${otherActors || 'N/A'}</td>
-                        <td>
-                            <button class="view-content-btn" data-type="videos" data-id="${video.nome}">▶</button>
-                        </td>
-                    </tr>`;
+                const otherActors = (video.atores || []).map(actorId => actorIdToDataMap[actorId]).filter(actorInfo => actorInfo && (actorInfo.id !== currentActorId && actorInfo.nome !== actorsData[currentActorId].informacoes_ator.nome)).map(actorInfo => actorInfo.nome).join(', ');
+                return `<tr><td>${video.data || 'N/A'}</td><td>${video.nome || 'N/A'}</td><td>${otherActors || 'N/A'}</td><td><button class="view-content-btn" data-type="videos" data-id="${video.nome}">▶</button></td></tr>`;
             }).join('');
-
-            return `
-                <div id="section-chronology" class="content-section">
-                    <h3>Cronologia</h3>
-                    <table id="chronology-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Nome</th>
-                                <th>Outros Atores</th>
-                                <th>Ver</th>
-                            </tr>
-                        </thead>
-                        <tbody>${tableRows}</tbody>
-                    </table>
-                </div>`;
+            return `<div id="section-chronology" class="content-section"><h3>Cronologia</h3><table id="chronology-table"><thead><tr><th>Data</th><th>Nome</th><th>Outros Atores</th><th>Ver</th></tr></thead><tbody>${tableRows}</tbody></table></div>`;
         }
 
-        // Adicionado 'id' ao wrapper da secção para o scroll funcionar
         function generateGridHtml(items, type) {
             if (!items || items.length === 0) return '';
             const title = type.charAt(0).toUpperCase() + type.slice(1);
-            const cards = items.map(item => `
-                <div class="card" data-type="${type}" data-id="${item.nome}">
-                    <img src="${item.imagem || ''}" alt="${item.nome || ''}">
-                    <div class="card-body"><h4>${item.nome || 'N/A'}</h4><p>${item.data || item.ano || ''}</p></div>
-                </div>`).join('');
+            const cards = items.map(item => `<div class="card" data-type="${type}" data-id="${item.nome}"><img src="${item.imagem || ''}" alt="${item.nome || ''}"><div class="card-body"><h4>${item.nome || 'N/A'}</h4><p>${item.data || item.ano || ''}</p></div></div>`).join('');
             return `<div id="section-${type}" class="content-section"><h3>${title}</h3><div class="grid">${cards}</div></div>`;
         }
 
         function openModal(item, currentActorName) {
-            const link = item.pagina || '#';
-            const urlPath = link.split('?')[0];
-            const isVideo = ['mp4', 'webm', 'ogg'].some(ext => urlPath.toLowerCase().endsWith('.' + ext));
+            const link = item.pagina || '#'; const urlPath = link.split('?')[0]; const isVideo = ['mp4', 'webm', 'ogg'].some(ext => urlPath.toLowerCase().endsWith('.' + ext));
             const mediaPlayerHtml = `<div class="media-player"><div class="aspect-ratio-box">${isVideo ? `<video src="${link}" controls autoplay playsinline></video>` : `<iframe src="${link}" frameborder="0" allowfullscreen></iframe>`}</div></div>`;
-
             let otherActorsHtml = '<li>Nenhuma outra atriz encontrada.</li>';
-            if (item.atores && item.atores.length > 1) {
-                const otherActors = item.atores.map(actorId => actorIdToDataMap[actorId]).filter(actorInfo => actorInfo && actorInfo.nome !== currentActorName);
-                if (otherActors.length > 0) { otherActorsHtml = otherActors.map(actor => `<li>${actor.nome}</li>`).join(''); }
-            }
-            
+            if (item.atores && item.atores.length > 1) { const otherActors = item.atores.map(actorId => actorIdToDataMap[actorId]).filter(actorInfo => actorInfo && actorInfo.nome !== currentActorName); if (otherActors.length > 0) { otherActorsHtml = otherActors.map(actor => `<li>${actor.nome}</li>`).join(''); } }
             let videoTagsHtml = '';
-            if (isVideo && item.tags && item.tags.length > 0) {
-                const tags = item.tags.map(tag => `<span class="tag-item" data-time="${tag.time}">${tag.label}</span>`).join('');
-                videoTagsHtml = `<h4>Tags</h4><div class="media-tags">${tags}</div>`;
-            }
-
+            if (isVideo && item.tags && item.tags.length > 0) { const tags = item.tags.map(tag => `<span class="tag-item" data-time="${tag.time}">${tag.label}</span>`).join(''); videoTagsHtml = `<h4>Tags</h4><div class="media-tags">${tags}</div>`; }
             const mediaInfoHtml = `<div class="media-info"><h3>${item.nome || 'N/A'}</h3><p><strong>Data:</strong> ${item.data || item.ano || 'N/A'}</p><h4>Outras Atrizes:</h4><ul>${otherActorsHtml}</ul>${videoTagsHtml}</div>`;
-            
             modalBody.innerHTML = mediaPlayerHtml + mediaInfoHtml;
-            modal.classList.add('visible');
-            document.addEventListener('keydown', handleEscKey);
+            mediaModal.classList.add('visible'); document.addEventListener('keydown', handleEscKeyForMedia);
         }
 
-        function closeModal() {
-            modal.classList.remove('visible');
-            modalBody.innerHTML = '';
-            document.removeEventListener('keydown', handleEscKey);
+        function closeModal(modalElement) {
+            modalElement.classList.remove('visible');
+            if (modalElement.id === 'media-modal') {
+                modalBody.innerHTML = '';
+                document.removeEventListener('keydown', handleEscKeyForMedia);
+            }
         }
-        function handleEscKey(e) { if (e.key === 'Escape') closeModal(); }
+        function handleEscKeyForMedia(e) { if (e.key === 'Escape') closeModal(mediaModal); }
         
+        // --- EVENT LISTENERS ---
+
+        searchInput.addEventListener('input', applyFilters);
+        advancedSearchBtn.addEventListener('click', () => advancedSearchModal.classList.add('visible'));
+        applyFiltersBtn.addEventListener('click', () => { applyFilters(); closeModal(advancedSearchModal); });
+        resetFiltersBtn.addEventListener('click', () => { advancedSearchForm.reset(); applyFilters(); });
+
         actorListElement.addEventListener('click', (e) => {
             if (e.target && e.target.nodeName === 'LI') {
                 document.querySelectorAll('#actor-list li').forEach(li => li.classList.remove('active'));
-                e.target.classList.add('active');
-                renderActorDetails(e.target.dataset.actorId);
+                e.target.classList.add('active'); renderActorDetails(e.target.dataset.actorId);
             }
         });
         
-        // Listener de clique modificado para apanhar também os botões da tabela
         mainContentElement.addEventListener('click', (e) => {
             const mediaTrigger = e.target.closest('[data-type][data-id]');
             if (mediaTrigger) {
@@ -300,8 +422,21 @@
             }
         });
 
-        closeModalBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        // Listeners para fechar os modais
+        document.querySelectorAll('.modal').forEach(modalEl => {
+            modalEl.addEventListener('click', (e) => { if (e.target === modalEl) closeModal(modalEl); });
+            modalEl.querySelector('.modal-close').addEventListener('click', () => closeModal(modalEl));
+        });
+
+        // Listener para toggle dos dropdowns customizados
+        document.body.addEventListener('click', e => {
+            if (e.target.classList.contains('multiselect-btn')) {
+                const options = e.target.nextElementSibling;
+                options.classList.toggle('visible');
+            } else if (!e.target.closest('.custom-multiselect')) {
+                document.querySelectorAll('.multiselect-options').forEach(opt => opt.classList.remove('visible'));
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
