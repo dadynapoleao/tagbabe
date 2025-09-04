@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Vídeos</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
+    <style>
+        :root {
+            --bg-color: #121212; --sidebar-bg: #1e1e1e; --card-bg: #282828; --primary-text: #ffffff;
+            --secondary-text: #b3b3b3; --accent-color: #1db954; --error-color: #f44336;
+            --success-color: #4caf50; --border-color: #404040; --warning-color: #ff9800;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--primary-text); margin: 0; padding: 30px; }
+        .container { max-width: 800px; margin: 0 auto; background-color: var(--sidebar-bg); padding: 30px; border-radius: 8px; }
+        h1, h2 { text-align: center; color: var(--accent-color); margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--secondary-text); }
+        input, select, textarea { width: 100%; padding: 10px; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 4px; color: var(--primary-text); font-size: 1rem; }
+        .choices__inner { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 4px; padding: 6px; font-size: 1rem; min-height: 40px; }
+        .choices__list--dropdown, .choices__list[aria-expanded] { background-color: var(--card-bg); border-color: var(--border-color); }
+        .choices__item--choice { color: var(--primary-text); }
+        .choices__item--selectable.is-highlighted { background-color: var(--accent-color); }
+        .choices[data-type*="select-multiple"] .choices__button { border-left: 1px solid var(--border-color); margin-top: 4px; }
+        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+        button { color: #fff; border: none; padding: 12px 20px; font-size: 1rem; font-weight: bold; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; width: 100%; }
+        #btn-save { background-color: var(--accent-color); } #btn-save:hover { background-color: #1ed760; }
+        #btn-new { background-color: #007bff; }
+        #btn-delete { background-color: var(--error-color); }
+        button:disabled { background-color: #555; cursor: not-allowed; }
+        .tags-panel { background-color: var(--card-bg); padding: 15px; border-radius: 4px; margin-top: 10px; }
+        .tags-input-group { display: flex; gap: 10px; margin-bottom: 10px; }
+        .tags-input-group select, .tags-input-group input, .tags-input-group button { flex: 1; margin: 0; }
+        #tags-display { display: flex; flex-wrap: wrap; gap: 8px; min-height: 20px; }
+        .tag-item-editor { background-color: var(--sidebar-bg); padding: 5px 10px; border-radius: 15px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .tag-item-editor .remove-tag { cursor: pointer; color: var(--error-color); font-weight: bold; }
+        #status-message { text-align: center; padding: 10px; margin-top: 20px; border-radius: 4px; font-weight: bold; display: none; }
+        #status-message.success { background-color: var(--success-color); display: block; }
+        #status-message.error { background-color: var(--error-color); display: block; }
+        .url-preview { display: none; margin-top: 15px; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; }
+        .url-preview video, .url-preview iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: none; }
+        .edit-section { border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }
+
+        /* --- NOVO: ESTILOS PARA O POPUP DE LOTE --- */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background-color: var(--sidebar-bg);
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 700px;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px; right: 10px;
+            background: none; border: none; color: var(--primary-text);
+            font-size: 24px; cursor: pointer;
+        }
+        #batch-text-input { height: 250px; resize: vertical; }
+        #batch-results { margin-top: 15px; padding: 10px; background-color: var(--card-bg); border-radius: 4px; display: none; max-height: 150px; overflow-y: auto; }
+        #batch-results strong { color: var(--accent-color); }
+        #batch-results .error-list { color: var(--warning-color); font-size: 0.9em; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Editor de Vídeos</h1>
+        <div class="edit-section">
+            <h2>Modo de Edição</h2>
+            <div class="form-group"><label for="video-selector">Selecione um vídeo para editar</label><select id="video-selector"></select></div>
+            <div class="form-actions"><button type="button" id="btn-new">Novo Vídeo</button><button type="button" id="btn-delete" disabled>Deletar Vídeo</button></div>
+        </div>
+        <form id="form-video"><!-- Formulário principal continua aqui --></form>
+        <div id="status-message"></div>
+    </div>
+
+    <!-- NOVO: ÍCONE FLUTUANTE E ESTRUTURA DO POPUP -->
+    <button class="fab" id="fab-batch-add" title="Adicionar Vídeos em Lote">+</button>
+
+    <div class="modal-overlay" id="batch-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="batch-modal-close">&times;</button>
+            <h2>Adicionar Vídeos em Lote</h2>
+            <div class="form-group">
+                <label for="batch-actor-selector">Adicionar vídeos para o Ator:</label>
+                <select id="batch-actor-selector"></select>
+            </div>
+            <div class="form-group">
+                <label for="batch-text-input">Cole o texto aqui:</label>
+                <textarea id="batch-text-input" placeholder="Jun 08, 2022&#10;Nome do Vídeo 06/08/22&#10;..."></textarea>
+            </div>
+            <button type="button" id="btn-process-batch">Processar e Salvar</button>
+            <div id="batch-results"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script>
+        // ... (todo o script anterior) ...
+        // Adicionar as novas variáveis e lógicas abaixo
+        
+        const firebaseConfig = { /* ... sua configuração ... */ };
+        // ... (código firebase e variáveis globais existentes) ...
+        
+        // NOVO: Seletores de Elementos do Popup
+        const fabBatchAdd = document.getElementById('fab-batch-add');
+        const batchModal = document.getElementById('batch-modal');
+        const batchModalClose = document.getElementById('batch-modal-close');
+        const btnProcessBatch = document.getElementById('btn-process-batch');
+        const batchResults = document.getElementById('batch-results');
+        
+        let batchActorChoices; // Choices instance para o popup
+
+        // --- Lógica do Popup de Lote ---
+        fabBatchAdd.addEventListener('click', () => {
+            batchModal.style.display = 'flex';
+        });
+        batchModalClose.addEventListener('click', () => {
+            batchModal.style.display = 'none';
+        });
+        batchModal.addEventListener('click', (e) => {
+            if (e.target === batchModal) {
+                batchModal.style.display = 'none';
+            }
+        });
+
+        btnProcessBatch.addEventListener('click', async () => {
+            const actorId = batchActorChoices.getValue(true);
+            const rawText = document.getElementById('batch-text-input').value;
+
+            if (!actorId) {
+                alert("Por favor, selecione um ator.");
+                return;
+            }
+            if (!rawText.trim()) {
+                alert("A caixa de texto está vazia.");
+                return;
+            }
+
+            const targetActor = actorsCache[actorId];
+            if (!targetActor) {
+                alert("Ator não encontrado no cache. Tente recarregar a página.");
+                return;
+            }
+            
+            const lines = rawText.split('\n').filter(line => line.trim() !== '');
+            const newVideos = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                // Tenta converter a linha atual para uma data válida
+                const potentialDate = new Date(lines[i]);
+                if (!isNaN(potentialDate.getTime()) && (i + 1) < lines.length) {
+                    
+                    const dateLine = lines[i];
+                    const titleLine = lines[i+1];
+                    
+                    // Converte data para YYYY-MM-DD
+                    const isoDate = potentialDate.toISOString().split('T')[0];
+                    
+                    // Remove a data no formato xx/xx/xx do final do título
+                    const cleanTitle = titleLine.replace(/\s*\d{1,2}\/\d{1,2}\/\d{2,4}\s*$/, '').trim();
+
+                    if(cleanTitle) {
+                        newVideos.push({
+                            nome: cleanTitle,
+                            data: isoDate,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+
+                    // Pula a linha do título e a próxima linha (se for um número)
+                    i++;
+                    if ((i + 1) < lines.length && !isNaN(parseInt(lines[i+1], 10))) {
+                        i++;
+                    }
+                }
+            }
+
+            if (newVideos.length === 0) {
+                batchResults.innerHTML = "Nenhum vídeo válido encontrado no texto.";
+                batchResults.style.display = 'block';
+                return;
+            }
+
+            const existingVideos = targetActor.videos || [];
+            const videosToAdd = [];
+            const duplicateVideos = [];
+
+            newVideos.forEach(video => {
+                const isDuplicate = existingVideos.some(ev => ev.nome === video.nome && ev.data === video.data);
+                if (isDuplicate) {
+                    duplicateVideos.push(video.nome);
+                } else {
+                    videosToAdd.push(video);
+                }
+            });
+
+            // Atualiza o feedback
+            let resultHTML = `<strong>Processamento Concluído:</strong><br>
+                              - ${newVideos.length} vídeos encontrados no texto.<br>
+                              - ${videosToAdd.length} novos vídeos serão adicionados.<br>
+                              - ${duplicateVideos.length} vídeos ignorados por serem duplicados.`;
+            
+            if (duplicateVideos.length > 0) {
+                resultHTML += `<div class="error-list">Repetidos: ${duplicateVideos.join(', ')}</div>`;
+            }
+            batchResults.innerHTML = resultHTML;
+            batchResults.style.display = 'block';
+
+            // Salva no Firebase se houver vídeos a adicionar
+            if (videosToAdd.length > 0) {
+                try {
+                    const finalVideosArray = [...existingVideos, ...videosToAdd];
+                    const docRef = db.collection('all').doc(actorId);
+                    await docRef.update({ videos: finalVideosArray });
+                    
+                    // Recarrega os dados para manter tudo sincronizado
+                    await loadInitialData(); 
+                } catch (error) {
+                    showStatus('Erro ao salvar vídeos em lote: ' + error.message, true);
+                }
+            }
+        });
+
+
+        // --- Modificar a Inicialização para incluir o popup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // ... (código de inicialização existente) ...
+
+            // NOVO: Inicialização do Choices.js para o popup
+            batchActorChoices = new Choices('#batch-actor-selector', {
+                placeholder: true,
+                placeholderValue: 'Pesquisar um ator...',
+                shouldSort: false
+            });
+
+            // ... (restante do código de inicialização) ...
+        });
+
+        // --- Modificar o Carregamento de Dados para popular o popup ---
+        async function loadInitialData() {
+            try {
+                // ... (código de carregamento existente no início da função) ...
+
+                actorChoicesData.sort((a, b) => a.label.localeCompare(b.label));
+                actorsChoices.setChoices(actorChoicesData, 'value', 'label', true);
+                
+                // NOVO: Popula o seletor de ator do popup
+                batchActorChoices.setChoices(actorChoicesData, 'value', 'label', true);
+
+                // ... (restante do código de carregamento) ...
+
+            } catch (error) { showStatus('Erro ao carregar dados: ' + error.message, true); }
+        }
+
+        // Restante do seu script original...
+        // (Cole o resto do seu script de 'Editor de Vídeos' aqui para que tudo funcione junto)
+
+    </script>
+</body>
+</html>
