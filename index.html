@@ -15,41 +15,11 @@
         .app-container { display: flex; width: 100%; height: 100%; }
         #sidebar { width: 280px; background-color: var(--sidebar-bg); padding: 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); flex-shrink: 0; }
         
-        #search-container {
-            display: flex;
-            align-items: center;
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 25px;
-            padding: 0 5px 0 15px;
-            margin-bottom: 20px;
-            transition: border-color 0.2s ease-in-out;
-        }
+        #search-container { display: flex; align-items: center; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 25px; padding: 0 5px 0 15px; margin-bottom: 20px; transition: border-color 0.2s ease-in-out; }
         #search-container:focus-within { border-color: var(--accent-color); }
-        #search-input {
-            flex-grow: 1;
-            background-color: transparent;
-            border: none;
-            outline: none;
-            color: var(--primary-text);
-            font-size: 0.9rem;
-            padding: 10px 0;
-        }
+        #search-input { flex-grow: 1; background-color: transparent; border: none; outline: none; color: var(--primary-text); font-size: 0.9rem; padding: 10px 0; }
         #search-input::placeholder { color: var(--secondary-text); opacity: 0.7; }
-        #advanced-search-btn {
-            flex-shrink: 0;
-            width: 35px;
-            height: 35px;
-            border: none;
-            background-color: transparent;
-            color: var(--secondary-text);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: color 0.2s;
-            border-radius: 50%;
-        }
+        #advanced-search-btn { flex-shrink: 0; width: 35px; height: 35px; border: none; background-color: transparent; color: var(--secondary-text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s; border-radius: 50%; }
         #advanced-search-btn:hover { color: var(--primary-text); }
         #advanced-search-btn svg { width: 20px; height: 20px; fill: currentColor; pointer-events: none; }
         
@@ -88,15 +58,7 @@
         .modal-content { position: relative; background-color: var(--card-bg); border-radius: 8px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
         .modal-close { position: absolute; top: 5px; right: 5px; background-color: var(--primary-text); color: var(--bg-color); border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center; z-index: 10; }
         #modal-body { display: flex; width: 100%; height: 100%; }
-        
-        /* ALTERAÇÃO APLICADA AQUI */
-        #advanced-search-modal .modal-content {
-            max-width: 600px;
-            padding: 25px;
-            max-height: 85vh; /* Limita a altura */
-            overflow-y: auto;  /* Adiciona scroll vertical se necessário */
-        }
-
+        #advanced-search-modal .modal-content { max-width: 600px; padding: 25px; max-height: 85vh; overflow-y: auto; }
         #advanced-search-modal h3 { font-size: 1.8rem; margin-bottom: 20px; color: var(--accent-color); }
         #advanced-search-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .form-group { display: flex; flex-direction: column; }
@@ -121,6 +83,43 @@
         .media-info { flex: 1; padding: 25px; background-color: var(--sidebar-bg); overflow-y: auto; }
         .media-info h3 { font-size: 1.5rem; margin-bottom: 15px; } .media-info p { margin-bottom: 20px; color: var(--secondary-text); } .media-info h4 { font-size: 1.1rem; margin-top: 25px; margin-bottom: 10px; color: var(--accent-color); border-top: 1px solid var(--border-color); padding-top: 15px; } .media-info ul { list-style: none; padding: 0; } .media-info li { margin-bottom: 8px; }
         .media-tags { display: flex; flex-wrap: wrap; gap: 8px; } .tag-item { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 15px; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s ease; } .tag-item:hover { background-color: var(--accent-color); color: var(--bg-color); border-color: var(--accent-color); }
+        
+        /* --- NOVO: ESTILOS PARA O BOTÃO DE EDITAR --- */
+        .media-info .title-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .media-info .title-container h3 {
+            margin-bottom: 0;
+            flex-grow: 1; /* Permite que o título ocupe o espaço disponível */
+        }
+        .edit-video-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--secondary-text);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0; /* Impede que o botão encolha */
+        }
+        .edit-video-btn:hover {
+            background-color: var(--hover-color);
+            color: var(--primary-text);
+            border-color: var(--accent-color);
+        }
+        .edit-video-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
     </style>
 </head>
 <body>
@@ -309,7 +308,7 @@
         
         function generateChronologyTableHtml(videos, currentActorId) {
             if (!videos || videos.length === 0) return '';
-            const parseDate = (d) => { if (!d) return null; return new Date(d.replace(/\//g, '-')); };
+            const parseDate = (d) => { if (!d) return null; const parts = d.split('-'); return new Date(parts[0], parts[1] - 1, parts[2]); };
             const sortedVideos = [...videos].sort((a, b) => (parseDate(b.data) || 0) - (parseDate(a.data) || 0));
             const tableRows = sortedVideos.map(video => {
                 const otherActors = (video.atores || []).map(id => actorIdToDataMap[id]).filter(info => info && (info.id !== currentActorId && info.nome !== actorsData[currentActorId].informacoes_ator.nome)).map(info => info.nome).join(', ');
@@ -324,18 +323,50 @@
             const cards = items.map(item => `<div class="card" data-type="${type}" data-id="${encodeURIComponent(item.nome)}"><img src="${item.imagem||''}" alt="${item.nome||''}"><div class="card-body"><h4>${item.nome||'N/A'}</h4><p>${item.data||item.ano||''}</p></div></div>`).join('');
             return `<div id="section-${type}" class="content-section"><h3>${title}</h3><div class="grid">${cards}</div></div>`;
         }
-
+        
+        // --- NOVO: FUNÇÃO openModal MODIFICADA ---
         function openModal(item, currentActorName) {
-            const link = item.pagina || '#'; const isVideo = ['mp4', 'webm', 'ogg'].some(ext => link.split('?')[0].toLowerCase().endsWith('.' + ext));
+            const link = item.pagina || '#';
+            const isVideo = ['mp4', 'webm', 'ogg'].some(ext => link.split('?')[0].toLowerCase().endsWith('.' + ext));
             const mediaPlayerHtml = `<div class="media-player"><div class="aspect-ratio-box">${isVideo ? `<video src="${link}" controls autoplay playsinline></video>` : `<iframe src="${link}" frameborder="0" allowfullscreen></iframe>`}</div></div>`;
+
             let otherActorsHtml = '<li>Nenhuma outra atriz encontrada.</li>';
-            if (item.atores && item.atores.length > 1) { const otherActors = item.atores.map(id => actorIdToDataMap[id]).filter(info => info && info.nome !== currentActorName); if (otherActors.length > 0) { otherActorsHtml = otherActors.map(actor => `<li>${actor.nome}</li>`).join(''); } }
+            if (item.atores && item.atores.length > 1) {
+                const otherActors = item.atores.map(id => actorIdToDataMap[id]).filter(info => info && info.nome !== currentActorName);
+                if (otherActors.length > 0) {
+                    otherActorsHtml = otherActors.map(actor => `<li>${actor.nome}</li>`).join('');
+                }
+            }
+
             let videoTagsHtml = '';
-            if (isVideo && item.tags && item.tags.length > 0) { const tags = item.tags.map(tag => `<span class="tag-item" data-time="${tag.time}">${tag.label}</span>`).join(''); videoTagsHtml = `<h4>Tags</h4><div class="media-tags">${tags}</div>`; }
-            const mediaInfoHtml = `<div class="media-info"><h3>${item.nome||'N/A'}</h3><p><strong>Data:</strong> ${item.data||item.ano||'N/A'}</p><h4>Outras Atrizes:</h4><ul>${otherActorsHtml}</ul>${videoTagsHtml}</div>`;
+            if (isVideo && item.tags && item.tags.length > 0) {
+                const tags = item.tags.map(tag => `<span class="tag-item" data-time="${tag.time}">${tag.label}</span>`).join('');
+                videoTagsHtml = `<h4>Tags</h4><div class="media-tags">${tags}</div>`;
+            }
+            
+            // Cria o botão de editar com o link dinâmico
+            const encodedVideoName = encodeURIComponent(item.nome || '');
+            const editButtonHtml = `
+                <a href="advid.html?video=${encodedVideoName}" target="_blank" class="edit-video-btn" title="Editar Vídeo">
+                    <svg viewBox="0 0 24 24"><path d="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z" /></svg>
+                </a>
+            `;
+
+            // Cria um container para o título e o botão
+            const titleHtml = `
+                <div class="title-container">
+                    <h3>${item.nome || 'N/A'}</h3>
+                    ${editButtonHtml}
+                </div>
+            `;
+
+            const mediaInfoHtml = `<div class="media-info">${titleHtml}<p><strong>Data:</strong> ${item.data||item.ano||'N/A'}</p><h4>Outras Atrizes:</h4><ul>${otherActorsHtml}</ul>${videoTagsHtml}</div>`;
+            
             modalBody.innerHTML = mediaPlayerHtml + mediaInfoHtml;
-            mediaModal.classList.add('visible'); document.addEventListener('keydown', handleEscKeyForMedia);
+            mediaModal.classList.add('visible');
+            document.addEventListener('keydown', handleEscKeyForMedia);
         }
+
 
         function closeModal(modalElement) {
             modalElement.classList.remove('visible');
@@ -348,21 +379,9 @@
         
         searchInput.addEventListener('input', applyFilters);
         advancedSearchBtn.addEventListener('click', () => advancedSearchModal.classList.add('visible'));
-        
-        applyFiltersBtn.addEventListener('click', () => { 
-            applyFilters(); 
-            closeModal(advancedSearchModal); 
-        });
-        
-        implementFiltersBtn.addEventListener('click', () => {
-            applyFilters();
-        });
-        
-        resetFiltersBtn.addEventListener('click', () => { 
-            advancedSearchForm.reset(); 
-            document.querySelectorAll('.custom-multiselect input[type="checkbox"]').forEach(c => c.checked = false); 
-            applyFilters(); 
-        });
+        applyFiltersBtn.addEventListener('click', () => { applyFilters(); closeModal(advancedSearchModal); });
+        implementFiltersBtn.addEventListener('click', () => { applyFilters(); });
+        resetFiltersBtn.addEventListener('click', () => { advancedSearchForm.reset(); document.querySelectorAll('.custom-multiselect input[type="checkbox"]').forEach(c => c.checked = false); applyFilters(); });
         
         actorListElement.addEventListener('click', (e) => {
             if (e.target && e.target.tagName === 'LI') {
