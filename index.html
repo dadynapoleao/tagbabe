@@ -35,7 +35,6 @@
             color: var(--primary-text);
             font-size: 0.9rem;
             padding: 10px 0;
-            /* width: 100%; */ /* <-- ESTA LINHA FOI REMOVIDA (A CAUSA DO ERRO) */
         }
         #search-input::placeholder { color: var(--secondary-text); opacity: 0.7; }
         #advanced-search-btn {
@@ -148,14 +147,18 @@
                 <div class="form-group"><label for="max-height">Altura (cm - máx)</label><input type="number" id="max-height"></div>
                 <div class="form-group full-width" id="eyecolor-group"><label>Cor dos Olhos</label></div>
                 <div class="form-group full-width" id="haircolor-group"><label>Cor do Cabelo</label></div>
-                <div class="form-actions"><button type="button" id="reset-filters-btn">Limpar</button><button type="button" id="apply-filters-btn">Pesquisar</button></div>
+                <!-- NOVO: BOTÕES MODIFICADOS -->
+                <div class="form-actions">
+                    <button type="button" id="reset-filters-btn">Limpar</button>
+                    <button type="button" id="implement-filters-btn" style="background-color: #4a4a4a; color: var(--primary-text);">Aplicar Filtros</button>
+                    <button type="button" id="apply-filters-btn">Pesquisar</button>
+                </div>
             </form>
         </div>
     </div>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script>
-        // JAVASCRIPT NÃO PRECISA DE ALTERAÇÕES
         const firebaseConfig = {
           apiKey: "AIzaSyBZEffPMXgbSHYUUrNdIS5duAVGlKlmSq0",
           authDomain: "babes-392fd.firebaseapp.com",
@@ -174,6 +177,7 @@
         const advancedSearchModal = document.getElementById('advanced-search-modal');
         const advancedSearchForm = document.getElementById('advanced-search-form');
         const applyFiltersBtn = document.getElementById('apply-filters-btn');
+        const implementFiltersBtn = document.getElementById('implement-filters-btn'); // NOVO: SELETOR DO NOVO BOTÃO
         const resetFiltersBtn = document.getElementById('reset-filters-btn');
         const mediaModal = document.getElementById('media-modal');
         const modalBody = document.getElementById('modal-body');
@@ -336,10 +340,26 @@
         }
         function handleEscKeyForMedia(e) { if (e.key === 'Escape') closeModal(mediaModal); }
         
+        // --- EVENT LISTENERS ---
         searchInput.addEventListener('input', applyFilters);
         advancedSearchBtn.addEventListener('click', () => advancedSearchModal.classList.add('visible'));
-        applyFiltersBtn.addEventListener('click', () => { applyFilters(); closeModal(advancedSearchModal); });
-        resetFiltersBtn.addEventListener('click', () => { advancedSearchForm.reset(); document.querySelectorAll('.custom-multiselect input[type="checkbox"]').forEach(c => c.checked = false); applyFilters(); });
+        
+        applyFiltersBtn.addEventListener('click', () => { 
+            applyFilters(); 
+            closeModal(advancedSearchModal); 
+        });
+        
+        // NOVO: EVENTO DE CLIQUE PARA O NOVO BOTÃO
+        implementFiltersBtn.addEventListener('click', () => {
+            applyFilters(); // Apenas aplica os filtros, sem fechar o modal
+        });
+        
+        resetFiltersBtn.addEventListener('click', () => { 
+            advancedSearchForm.reset(); 
+            document.querySelectorAll('.custom-multiselect input[type="checkbox"]').forEach(c => c.checked = false); 
+            applyFilters(); 
+        });
+        
         actorListElement.addEventListener('click', (e) => {
             if (e.target && e.target.tagName === 'LI') {
                 document.querySelectorAll('#actor-list li').forEach(li => li.classList.remove('active'));
