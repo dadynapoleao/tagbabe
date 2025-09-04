@@ -51,35 +51,18 @@
     </style>
 </head>
 <body>
+
     <div class="container">
         <h1>Editor de Vídeos</h1>
-
         <div class="edit-section">
             <h2>Modo de Edição</h2>
-            <div class="form-group">
-                <label for="video-selector">Selecione um vídeo para editar</label>
-                <select id="video-selector"></select>
-            </div>
-             <div class="form-actions">
-                <button type="button" id="btn-new">Novo Vídeo</button>
-                <button type="button" id="btn-delete" disabled>Deletar Vídeo</button>
-            </div>
+            <div class="form-group"><label for="video-selector">Selecione um vídeo para editar</label><select id="video-selector"></select></div>
+            <div class="form-actions"><button type="button" id="btn-new">Novo Vídeo</button><button type="button" id="btn-delete" disabled>Deletar Vídeo</button></div>
         </div>
-
-        <!-- O CONTEÚDO DO FORMULÁRIO FOI REINSERIDO AQUI -->
         <form id="form-video">
-            <div class="form-group">
-                <label for="video-nome">Nome do Vídeo (Obrigatório)</label>
-                <input type="text" id="video-nome" required>
-            </div>
-            <div class="form-group">
-                <label for="video-data">Data (Obrigatório)</label>
-                <input type="date" id="video-data" required>
-            </div>
-             <div class="form-group">
-                <label for="video-atores">Atores (Pesquise e selecione)</label>
-                <select id="video-atores" multiple></select>
-            </div>
+            <div class="form-group"><label for="video-nome">Nome do Vídeo (Obrigatório)</label><input type="text" id="video-nome" required></div>
+            <div class="form-group"><label for="video-data">Data (Obrigatório)</label><input type="date" id="video-data" required></div>
+            <div class="form-group"><label for="video-atores">Atores (Pesquise e selecione)</label><select id="video-atores" multiple></select></div>
             <div class="form-group"><label for="video-estudio">Estúdio</label><input type="text" id="video-estudio"></div>
             <div class="form-group"><label for="video-imagem">URL da Imagem</label><input type="text" id="video-imagem"></div>
             <div class="form-group">
@@ -104,24 +87,16 @@
             </div>
             <button type="submit" id="btn-save">Salvar Alterações</button>
         </form>
-
         <div id="status-message"></div>
     </div>
 
     <button class="fab" id="fab-batch-add" title="Adicionar Vídeos em Lote">+</button>
-
     <div class="modal-overlay" id="batch-modal">
         <div class="modal-content">
             <button class="modal-close" id="batch-modal-close">&times;</button>
             <h2>Adicionar Vídeos em Lote</h2>
-            <div class="form-group">
-                <label for="batch-actor-selector">Adicionar vídeos para o Ator:</label>
-                <select id="batch-actor-selector"></select>
-            </div>
-            <div class="form-group">
-                <label for="batch-text-input">Cole o texto aqui:</label>
-                <textarea id="batch-text-input" placeholder="Jun 08, 2022&#10;Nome do Vídeo 06/08/22&#10;..."></textarea>
-            </div>
+            <div class="form-group"><label for="batch-actor-selector">Adicionar vídeos para o Ator:</label><select id="batch-actor-selector"></select></div>
+            <div class="form-group"><label for="batch-text-input">Cole o texto aqui:</label><textarea id="batch-text-input" placeholder="Jun 08, 2022&#10;Nome do Vídeo 06/08/22&#10;..."></textarea></div>
             <button type="button" id="btn-process-batch">Processar e Salvar</button>
             <div id="batch-results"></div>
         </div>
@@ -189,10 +164,51 @@
 
                 const videoChoicesData = Array.from(allVideosMap.keys()).sort().map(name => ({ value: name, label: name }));
                 videoChoices.setChoices(videoChoicesData, 'value', 'label', true);
-
             } catch (error) { showStatus('Erro ao carregar dados: ' + error.message, true); }
         }
         
+        // ... (resto das funções como resetForm, populateFormWithVideoData, etc.)
+        
+        // --- NOVO: FUNÇÃO DE INICIALIZAÇÃO DA PÁGINA ---
+        async function initializePage() {
+            // Primeiro, carrega todos os dados do Firebase e popula os caches
+            await loadInitialData();
+
+            // Depois que os dados estiverem prontos, verifica a URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const videoNameToEditEncoded = urlParams.get('video');
+
+            if (videoNameToEditEncoded) {
+                const videoNameToEdit = decodeURIComponent(videoNameToEditEncoded);
+                
+                // Verifica se o vídeo existe no nosso mapa de vídeos
+                if (allVideosMap.has(videoNameToEdit)) {
+                    // Se existir, define o valor do seletor e preenche o formulário
+                    videoChoices.setValue([{ value: videoNameToEdit, label: videoNameToEdit }]);
+                    populateFormWithVideoData(videoNameToEdit);
+                } else {
+                    showStatus(`Vídeo "${videoNameToEdit}" não foi encontrado.`, true);
+                }
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            actorsChoices = new Choices('#video-atores', { removeItemButton: true, placeholder: true, placeholderValue: 'Pesquisar atores...' });
+            videoChoices = new Choices('#video-selector', { placeholder: true, placeholderValue: 'Pesquisar um vídeo...', shouldSort: false });
+            batchActorChoices = new Choices('#batch-actor-selector', { placeholder: true, placeholderValue: 'Pesquisar um ator...', shouldSort: false });
+            
+            document.getElementById('video-selector').addEventListener('change', (e) => populateFormWithVideoData(e.target.value));
+            btnNew.addEventListener('click', resetForm);
+            urlInput.addEventListener('input', updateUrlPreview);
+
+            setupTagPanel();
+            
+            // --- NOVO: CHAMA A FUNÇÃO DE INICIALIZAÇÃO PRINCIPAL ---
+            initializePage();
+        });
+        
+        // (Aqui continuam as outras funções: resetForm, populateFormWithVideoData, form submit, etc. que você já tem)
         function resetForm() {
             form.reset();
             actorsChoices.removeActiveItems();
@@ -366,19 +382,6 @@
                     await loadInitialData(); 
                 } catch (error) { showStatus('Erro ao salvar em lote: ' + error.message, true); }
             }
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            actorsChoices = new Choices('#video-atores', { removeItemButton: true, placeholder: true, placeholderValue: 'Pesquisar atores...' });
-            videoChoices = new Choices('#video-selector', { placeholder: true, placeholderValue: 'Pesquisar um vídeo...', shouldSort: false });
-            batchActorChoices = new Choices('#batch-actor-selector', { placeholder: true, placeholderValue: 'Pesquisar um ator...', shouldSort: false });
-            
-            document.getElementById('video-selector').addEventListener('change', (e) => populateFormWithVideoData(e.target.value));
-            btnNew.addEventListener('click', resetForm);
-            urlInput.addEventListener('input', updateUrlPreview);
-
-            loadInitialData();
-            setupTagPanel();
         });
     </script>
 </body>
